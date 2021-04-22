@@ -1,3 +1,7 @@
 # Facebook-clone
 
-A project to learn about docker
+### Tech Stack:
+- Docker
+- Redis (**cache**)
+
+**Redis cli:** ```docker exec -it cache redis-cli```
