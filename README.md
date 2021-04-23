@@ -19,4 +19,4 @@
 **Does not work with CMD**
 
 ### Design
-![Design](https://imgur.com/a/7xyLa04)
+![Design](https://user-images.githubusercontent.com/45307657/115917093-564d8200-a493-11eb-9e69-9aaacfa18d31.png)
