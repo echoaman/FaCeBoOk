@@ -17,3 +17,6 @@
 - **Remove all containers:** ```docker rm $(docker ps -aq)```
 
 **Does not work with CMD**
+
+### Design
+![Design](https://imgur.com/a/7xyLa04)
