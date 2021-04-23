@@ -6,3 +6,14 @@ services:
     image: redis:6-alpine
     ports: 
       - "6379:6379"
+
+  profile-database:
+    container_name: profile-database
+    image: postgres:13.2-alpine
+    environment: 
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+    volumes: 
+      - ./pgdata:/var/lib/postgresql/data
+    ports: 
+      - "5432:5432"
