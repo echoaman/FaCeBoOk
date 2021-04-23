@@ -9,7 +9,7 @@
 
 ### CLI commands
 - **Redis:** ```docker exec -it cache redis-cli```
-- **Mongodb:** ```docker exec -it profile-database mongo```
+- **Mongodb:** ```docker exec -it profile-database mongo -u admin -p admin --authenticationDatabase admin```
 - **Postgres:** ```docker exec -it feed-database psql -U admin postgres```
 
 ### Remove all images and containers
