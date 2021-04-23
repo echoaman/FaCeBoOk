@@ -7,13 +7,26 @@ services:
     ports: 
       - "6379:6379"
 
-  profile-database:
-    container_name: profile-database
+  feed-database:
+    container_name: feed-database
     image: postgres:13.2-alpine
+    restart: always
     environment: 
       POSTGRES_PASSWORD: admin
       POSTGRES_USER: admin
     volumes: 
-      - ./pgdata:/var/lib/postgresql/data
+      - ./feedData:/var/lib/postgresql/data
     ports: 
       - "5432:5432"
+
+  profile-database:
+    container_name: profile-database
+    image: mongo:4.4
+    restart: always
+    environment: 
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes: 
+      - ./profileData:/data/db
+    ports: 
+      - "27017:27017"
