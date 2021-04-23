@@ -10,7 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using profile_service.Interfaces;
+using profile_service.Models;
+using profile_service.Services;
 
 namespace profile_service
 {
@@ -26,6 +30,9 @@ namespace profile_service
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ProfileDatabaseSettings>(Configuration.GetSection(nameof(ProfileDatabaseSettings)));
+            services.AddSingleton<IProfileDatabaseSettings>(sp => sp.GetRequiredService<IOptions<ProfileDatabaseSettings>>().Value);
+            services.AddSingleton<IUserService, UserService>();
             services.AddCors();
             services.AddControllers();
             services.AddSwaggerGen(c =>
