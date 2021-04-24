@@ -25,4 +25,12 @@ namespace profile_service.Models
 		[BsonElement("Friends")]
 		public List<string> Friends { get; set; }
 	}
+
+	public enum UserEvents
+	{
+		CREATED,
+		EXISTS,
+		ERROR,
+		ADDED
+	}
 }
