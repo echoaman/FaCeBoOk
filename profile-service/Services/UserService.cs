@@ -12,38 +12,36 @@ namespace profile_service.Services
 	{
 		private readonly IMongoCollection<User> _mongo;
 		private readonly ILogger<UserService> _logger;
+		private readonly IUserCache _userCache;
+		private readonly IUserDataAccess _userDataAccess;
 
-		public UserService(IProfileDatabaseSettings settings, ILogger<UserService> logger)
+		public UserService(IProfileDatabaseSettings settings, ILogger<UserService> logger,
+			IUserCache cache, IUserDataAccess userDataAccess)
 		{
 			_logger = logger;
+			_userCache = cache;
+			_userDataAccess = userDataAccess;
+
 			var client = new MongoClient(settings.ConnectionString);
 			var database = client.GetDatabase(settings.DatabaseName);
 			_mongo = database.GetCollection<User>(settings.UsersCollectionName);
-		}
-
-		public async Task<UserEvents> AddFriend(string UId, string NewFriend)
-		{
-			try
-			{
-				var userQuery = await _mongo.FindAsync(User => User.UId == UId);
-				User user = await userQuery.FirstOrDefaultAsync();
-				user.Friends.Add(NewFriend);
-				await _mongo.ReplaceOneAsync(user => user.UId == UId, user);
-				return UserEvents.ADDED;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in adding friend: " + ex.Message);
-				return UserEvents.ERROR;
-			}
 		}
 
 		public async Task<List<User>> GetAllUsers()
 		{
 			try
 			{
-				var query = await _mongo.FindAsync<User>(user => true);
-				List<User> users = query.ToList();
+				List<User> users = null;
+
+				// Get from cache
+				users = await _userCache.GetAllUsers();
+				if (users != null)
+				{
+					return users;
+				}
+
+				// Get from database
+				users = await _userDataAccess.GetAllUsers();
 				return users;
 			}
 			catch (Exception ex)
@@ -53,32 +51,22 @@ namespace profile_service.Services
 			}
 		}
 
-		public async Task<List<User>> GetFriends(string UId)
-		{
-			try
-			{
-				var userQuery = await _mongo.FindAsync(user => user.UId == UId);
-				User user = await userQuery.FirstOrDefaultAsync();
-				var friends = user.Friends;
-				
-				var filterDef = new FilterDefinitionBuilder<User>();
-				var filter = filterDef.In(user => user.UId, friends);
-				var friendsQuery = await _mongo.FindAsync(filter);
-				return friendsQuery.ToList();
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in GetFriends: " + ex.Message);
-				return null;
-			}
-		}
-
 		public async Task<User> GetUser(string UId)
 		{
 			try
 			{
-				var userQuery = await _mongo.FindAsync(user => user.UId == UId);
-				return await userQuery.FirstOrDefaultAsync();
+				User user = null;
+
+				// Get from cache
+				user = await _userCache.GetUser(UId);
+				if (user != null)
+				{
+					return user;
+				}
+
+				// Get from database
+				user = await _userDataAccess.GetUser(UId);
+				return user;
 			}
 			catch (Exception ex)
 			{
@@ -87,12 +75,66 @@ namespace profile_service.Services
 			}
 		}
 
+		public async Task<Events> UpdateUser(User updateDetails)
+		{
+			try
+			{
+				return await _userDataAccess.UpdateUser(updateDetails);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError("Error during update: " + ex.Message);
+				return Events.UPDATED;
+			}
+		}
+
+		public async Task<List<User>> SearchUser(string name)
+		{
+			return await _userDataAccess.SearchUser(name);
+		}
+
+		public async Task<List<User>> GetFriends(string UId)
+		{
+			try
+			{
+				List<User> friends = null;
+
+				// Get from cache
+				friends = await _userCache.GetFriends(UId);
+				if (friends != null)
+				{
+					return friends;
+				}
+
+				// Get from databae
+				friends = await _userDataAccess.GetFriends(UId);
+				return friends;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError("Error in GetFriends: " + ex.Message);
+				return null;
+			}
+		}
+
+		public async Task<Events> AddFriend(string UId, string NewFriendId)
+		{
+			try
+			{
+				return await _userDataAccess.AddFriend(UId, NewFriendId);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError("Error in adding friend: " + ex.Message);
+				return Events.ERROR;
+			}
+		}
+
 		public async Task<User> Login(string email, string password)
 		{
 			try
 			{
-				var userQuery = await _mongo.FindAsync(user => user.Email == email && user.Password == password);
-				return await userQuery.FirstOrDefaultAsync();
+				return await _userDataAccess.Login(email, password);
 			}
 			catch (Exception ex)
 			{
@@ -101,37 +143,17 @@ namespace profile_service.Services
 			}
 		}
 
-		public async Task<UserEvents> Signup(User newUser)
+		public async Task<Events> Signup(User newUser)
 		{
 			try
 			{
-				if(!await UserExists(newUser))
-				{
-					await _mongo.InsertOneAsync(newUser);
-					return UserEvents.CREATED;
-				}
-				else
-				{
-					return UserEvents.EXISTS;
-				}
+				return await _userDataAccess.Signup(newUser);
 			}
 			catch (Exception ex)
 			{
 				_logger.LogError("Error in signup: " + ex.Message);
-				return UserEvents.ERROR;
+				return Events.ERROR;
 			}
-		}
-
-		private async Task<bool> UserExists(User newUser)
-		{
-			var userQuery = await _mongo.FindAsync(user => user.Email == newUser.Email);
-			var user = await userQuery.FirstOrDefaultAsync();
-			if(user == null)
-			{
-				return false;
-			}
-
-			return true;
 		}
 	}
 }

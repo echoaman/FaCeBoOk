@@ -10,11 +10,8 @@ namespace profile_service.Models
         [BsonRepresentation(BsonType.ObjectId)]
 		public string UId { get; set; }
 		
-		[BsonElement("FirstName")]
-		public string FirstName { get; set; }
-		
-		[BsonElement("LastName")]
-		public string LastName { get; set; }
+		[BsonElement("Uname")]
+		public string Uname { get; set; }
 
 		[BsonElement("Email")]
 		public string Email { get; set; }
@@ -24,13 +21,5 @@ namespace profile_service.Models
 
 		[BsonElement("Friends")]
 		public List<string> Friends { get; set; }
-	}
-
-	public enum UserEvents
-	{
-		CREATED,
-		EXISTS,
-		ERROR,
-		ADDED
 	}
 }

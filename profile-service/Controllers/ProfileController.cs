@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using profile_service.Interfaces;
 using profile_service.Models;
 using System.Threading.Tasks;
-using System.Net.Http;
 
 namespace profile_service.Controllers
 {
@@ -18,12 +17,12 @@ namespace profile_service.Controllers
 		}
 
 		[HttpGet]
-		[Route("/login/{email}/{password}")]
-		public async Task<ActionResult> Login(string email, string password)
+		[Route("/login")]
+		public async Task<ActionResult> Login([FromQuery] string email, [FromQuery] string password)
 		{
 			User user = await _userService.Login(email, password);
-			
-			if(user == null)
+
+			if (user == null)
 			{
 				return StatusCode(404, user);
 			}
@@ -35,19 +34,13 @@ namespace profile_service.Controllers
 		[Route("/signup")]
 		public async Task<ActionResult> Signup(User NewUser)
 		{
-			UserEvents userEvents = await _userService.Signup(NewUser);
-			if(userEvents == UserEvents.CREATED)
+			Events userEvents = await _userService.Signup(NewUser);
+			if (userEvents == Events.CREATED)
 			{
 				return StatusCode(201);
 			}
-			else if(userEvents == UserEvents.EXISTS)
-			{
-				return StatusCode(204);
-			}
-			else 
-			{
-				return StatusCode(500);
-			}
+			
+			return StatusCode(204);
 		}
 
 		[HttpGet]
@@ -55,7 +48,7 @@ namespace profile_service.Controllers
 		public async Task<ActionResult> GetUser(string UId)
 		{
 			User user = await _userService.GetUser(UId);
-			if(user == null)
+			if (user == null)
 			{
 				return StatusCode(404, user);
 			}
@@ -69,25 +62,25 @@ namespace profile_service.Controllers
 		public async Task<ActionResult> GetFriends(string UId)
 		{
 			List<User> friends = await _userService.GetFriends(UId);
-			if(friends == null)
+			if (friends == null || friends.Count == 0)
 			{
-				return StatusCode(500, friends);
+				return StatusCode(204, friends);
 			}
 
 			return StatusCode(200, friends);
 		}
 
 		[HttpPut]
-		[Route("/friends/{UId}/{NewFriend}")]
-		public async Task<ActionResult> AddFriend(string UId, string NewFriend)
+		[Route("/addfriend")]
+		public async Task<ActionResult> AddFriend([FromQuery] string UId, [FromQuery] string NewFriendId)
 		{
-			UserEvents userEvents = await _userService.AddFriend(UId, NewFriend);
-			if(userEvents == UserEvents.ADDED)
+			Events userEvents = await _userService.AddFriend(UId, NewFriendId);
+			if (userEvents == Events.UPDATED)
 			{
 				return StatusCode(204);
 			}
 
-			return StatusCode(500);
+			return StatusCode(400);
 		}
 
 		[HttpGet]
@@ -95,11 +88,36 @@ namespace profile_service.Controllers
 		public async Task<ActionResult> GetAllUsers()
 		{
 			List<User> users = await _userService.GetAllUsers();
-			if(users == null)
+			if (users == null || users.Count == 0)
 			{
-				return StatusCode(500, users);
+				return StatusCode(204, users);
 			}
 
+			return StatusCode(200, users);
+		}
+
+		[HttpPut]
+		[Route("/updateUser")]
+		public async Task<ActionResult> UpdateUser(User updateDetails)
+		{
+			Events userEvents = await _userService.UpdateUser(updateDetails);
+			if (userEvents == Events.UPDATED)
+			{
+				return StatusCode(204);
+			}
+
+			return StatusCode(400);
+		}
+
+		[HttpGet]
+		[Route("/search")]
+		public async Task<ActionResult> SearchUser([FromQuery] string name)
+		{
+			List<User> users = await _userService.SearchUser(name);
+			if(users.Count == 0)
+			{
+				return StatusCode(204, users);
+			}
 			return StatusCode(200, users);
 		}
 	}
