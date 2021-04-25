@@ -2,30 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using profile_service.Interfaces;
 using profile_service.Models;
-using StackExchange.Redis;
 
 namespace profile_service.Cache
 {
 	public class UserCache : IUserCache
 	{
-		private readonly IDatabase _cache;
+		private readonly IDistributedCache _cache;
 		private const string all_users = "all_users";
 		private readonly ILogger<UserCache> _logger;
-		public UserCache(IDatabase cache, ILogger<UserCache> logger)
+		public UserCache(IDistributedCache cache, ILogger<UserCache> logger)
 		{
 			_cache = cache;
 			_logger = logger;
 		}
 
-		public async Task<bool> SetAllUsers(List<User> users, TimeSpan expiration)
+		public async Task<bool> SetAllUsers(List<User> users)
 		{
 			try
 			{
 				string json = JsonSerializer.Serialize(users);
-				await _cache.StringSetAsync(all_users, json, expiration);
+				await _cache.SetStringAsync(all_users, json);
 				return true;
 			}
 			catch (Exception ex)
@@ -39,8 +39,8 @@ namespace profile_service.Cache
 		{
 			try
 			{
-				RedisValue json = await _cache.StringGetAsync(all_users);
-				if (json.IsNullOrEmpty)
+				string json = await _cache.GetStringAsync(all_users);
+				if (string.IsNullOrEmpty(json))
 				{
 					return null;
 				}
@@ -54,12 +54,13 @@ namespace profile_service.Cache
 			}
 		}
 
-		public async Task<bool> SetUser(User user, TimeSpan expiration)
+		public async Task<bool> SetUser(User user)
 		{
 			try
 			{
 				string json = JsonSerializer.Serialize(user);
-				return await _cache.StringSetAsync(user.UId, json, expiration);
+				await _cache.SetStringAsync(user.UId, json);
+				return true;
 			}
 			catch (Exception ex)
 			{
@@ -72,8 +73,8 @@ namespace profile_service.Cache
 		{
 			try
 			{
-				RedisValue json = await _cache.StringGetAsync(UId);
-				if (json.IsNullOrEmpty)
+				string json = await _cache.GetStringAsync(UId);
+				if (string.IsNullOrEmpty(json))
 				{
 					return null;
 				}

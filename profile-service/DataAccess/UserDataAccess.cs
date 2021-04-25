@@ -15,7 +15,7 @@ namespace profile_service.DataAccess
 		private readonly IUserCache _userCache;
 		private readonly IMongoCollection<User> _mongo;
 		private readonly ILogger<UserDataAccess> _logger;
-		public UserDataAccess(IProfileDatabaseSettings settings, IUserCache userCache, ILogger<UserDataAccess> logger)
+		public UserDataAccess(IDatabaseSettings settings, IUserCache userCache, ILogger<UserDataAccess> logger)
 		{
 			_userCache = userCache;
 			_logger = logger;
@@ -34,7 +34,7 @@ namespace profile_service.DataAccess
 				users = query.ToList();
 
 				// Save in cache
-				bool setSuccesful = await _userCache.SetAllUsers(users, Expiration.MINUTES_5);
+				bool setSuccesful = await _userCache.SetAllUsers(users);
 				if (setSuccesful)
 				{
 					return users;
@@ -60,7 +60,7 @@ namespace profile_service.DataAccess
 				}
 
 				// Save to cache
-				bool setSuccesful = await _userCache.SetUser(user, Expiration.MINUTES_5);
+				bool setSuccesful = await _userCache.SetUser(user);
 				if (setSuccesful)
 				{
 					return user;
@@ -93,7 +93,7 @@ namespace profile_service.DataAccess
 				// Save to cache
 				List<User> users = await GetAllUsers();
 				User updatedUser = users.Find(user => user.UId == updateDetails.UId);
-				bool setSuccesful = await _userCache.SetUser(updatedUser, Expiration.MINUTES_5);
+				bool setSuccesful = await _userCache.SetUser(updatedUser);
 				if (setSuccesful)
 				{
 					return Events.UPDATED;
@@ -142,9 +142,9 @@ namespace profile_service.DataAccess
 				List<User> friends = friendsQuery.ToList();
 
 				// Save to cache
-				foreach (User u in friends)
+				foreach (User _user in friends)
 				{
-					await _userCache.SetUser(u, Expiration.MINUTES_5);
+					await _userCache.SetUser(_user);
 				}
 
 				return friends;
@@ -171,11 +171,11 @@ namespace profile_service.DataAccess
 
 				// Save in cache
 				await GetAllUsers();
-				bool setSuccesful = await _userCache.SetUser(user, Expiration.MINUTES_5);
+				bool setSuccesful = await _userCache.SetUser(user);
 
 				if (setSuccesful)
 				{
-					return Events.UPDATED;
+					return Events.ADDED;
 				}
 				else return Events.ERROR;
 			}
@@ -198,7 +198,7 @@ namespace profile_service.DataAccess
 				}
 
 				// Save to cache
-				bool setSuccesful = await _userCache.SetUser(user, Expiration.MINUTES_5);
+				bool setSuccesful = await _userCache.SetUser(user);
 				if (setSuccesful)
 				{
 					return user;
@@ -223,7 +223,7 @@ namespace profile_service.DataAccess
 
 					// Save to cache
 					await GetAllUsers();
-					bool setSuccesful = await _userCache.SetUser(newUser, Expiration.MINUTES_5);
+					bool setSuccesful = await _userCache.SetUser(newUser);
 
 					if (setSuccesful)
 					{
@@ -266,14 +266,6 @@ namespace profile_service.DataAccess
 			}
 
 			return true;
-		}
-
-		private class Expiration
-		{
-			public static readonly TimeSpan SECONDS_10 = new TimeSpan(0, 0, 10);
-			public static readonly TimeSpan MINUTES_1 = new TimeSpan(0, 1, 0);
-			public static readonly TimeSpan MINUTES_5 = new TimeSpan(0, 5, 0);
-			public static readonly TimeSpan MINUTES_10 = new TimeSpan(0, 10, 0);
 		}
 	}
 }

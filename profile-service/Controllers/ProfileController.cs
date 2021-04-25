@@ -75,7 +75,7 @@ namespace profile_service.Controllers
 		public async Task<ActionResult> AddFriend([FromQuery] string UId, [FromQuery] string NewFriendId)
 		{
 			Events userEvents = await _userService.AddFriend(UId, NewFriendId);
-			if (userEvents == Events.UPDATED)
+			if (userEvents == Events.ADDED)
 			{
 				return StatusCode(204);
 			}

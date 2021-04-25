@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using profile_service.Interfaces;
 using profile_service.Models;
 using System.Threading.Tasks;
@@ -10,21 +9,15 @@ namespace profile_service.Services
 {
 	public class UserService : IUserService
 	{
-		private readonly IMongoCollection<User> _mongo;
 		private readonly ILogger<UserService> _logger;
 		private readonly IUserCache _userCache;
 		private readonly IUserDataAccess _userDataAccess;
 
-		public UserService(IProfileDatabaseSettings settings, ILogger<UserService> logger,
-			IUserCache cache, IUserDataAccess userDataAccess)
+		public UserService(ILogger<UserService> logger, IUserCache cache, IUserDataAccess userDataAccess)
 		{
 			_logger = logger;
 			_userCache = cache;
 			_userDataAccess = userDataAccess;
-
-			var client = new MongoClient(settings.ConnectionString);
-			var database = client.GetDatabase(settings.DatabaseName);
-			_mongo = database.GetCollection<User>(settings.UsersCollectionName);
 		}
 
 		public async Task<List<User>> GetAllUsers()
