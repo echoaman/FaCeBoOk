@@ -1,11 +1,12 @@
 # Facebook-clone
 
 ### Tech Stack:
-![.NET](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
-![Redis](https://img.shields.io/badge/redis-CC0000.svg?&style=for-the-badge&logo=redis&logoColor=white)
-![Postgres](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Mongodb](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![Spring-Boot](https://img.shields.io/badge/spring--boot-00ff80?style=for-the-badge)
+![.NET](https://img.shields.io/badge/asp.net-8000ff?style=for-the-badge)
+![Redis](https://img.shields.io/badge/redis-ff0000?style=for-the-badge)
+![Postgres](https://img.shields.io/badge/postgres-0080ff?style=for-the-badge)
+![Mongodb](https://img.shields.io/badge/mongodb-00ff00?style=for-the-badge)
+![Docker](https://img.shields.io/badge/docker-00bfff?style=for-the-badge)
 
 
 ### CLI commands
