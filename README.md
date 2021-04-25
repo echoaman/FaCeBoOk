@@ -1,12 +1,12 @@
 # Facebook-clone
 
 ### Tech Stack:
-![Spring-Boot](https://img.shields.io/badge/spring--boot-00ff80?style=for-the-badge)
-![.NET](https://img.shields.io/badge/asp.net-8000ff?style=for-the-badge)
-![Redis](https://img.shields.io/badge/redis-ff0000?style=for-the-badge)
-![Postgres](https://img.shields.io/badge/postgres-0080ff?style=for-the-badge)
-![Mongodb](https://img.shields.io/badge/mongodb-00ff00?style=for-the-badge)
-![Docker](https://img.shields.io/badge/docker-00bfff?style=for-the-badge)
+![Spring-Boot](https://img.shields.io/static/v1?label&message=spring-boot&color=2eb82e&style=for-the-badge)
+![.NET](https://img.shields.io/static/v1?label&message=asp.net&color=8000ff&style=for-the-badge)
+![Redis](https://img.shields.io/static/v1?label&message=redis&color=ff0000&style=for-the-badge)
+![Postgres](https://img.shields.io/static/v1?label&message=postgres&color=0080ff&style=for-the-badge)
+![Mongodb](https://img.shields.io/static/v1?label&message=mongodb&color=success&style=for-the-badge)
+![Docker](https://img.shields.io/static/v1?label&message=docker&color=00bfff&style=for-the-badge)
 
 
 ### CLI commands
