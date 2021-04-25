@@ -30,3 +30,12 @@ services:
       - ./profileData:/data/db
     ports: 
       - "27017:27017"
+
+  profile-service:
+    build: ./profile-service
+    container_name: profile-service
+    ports: 
+      - "5000:80"
+    depends_on: 
+      - cache
+      - profile-database
