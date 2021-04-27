@@ -13,6 +13,7 @@ namespace profile_service.Cache
 	{
 		private readonly IDistributedCache _cache;
 		private const string all_users = "all_users";
+		private const string single_user = "user_";
 		private readonly ILogger<UserCache> _logger;
 		public UserCache(IDistributedCache cache, ILogger<UserCache> logger)
 		{
@@ -58,8 +59,9 @@ namespace profile_service.Cache
 		{
 			try
 			{
+				string key = single_user + user.UId;
 				string json = JsonSerializer.Serialize(user);
-				await _cache.SetStringAsync(user.UId, json);
+				await _cache.SetStringAsync(key, json);
 				return true;
 			}
 			catch (Exception ex)
@@ -73,7 +75,8 @@ namespace profile_service.Cache
 		{
 			try
 			{
-				string json = await _cache.GetStringAsync(UId);
+				string key = single_user + UId;
+				string json = await _cache.GetStringAsync(key);
 				if (string.IsNullOrEmpty(json))
 				{
 					return null;
