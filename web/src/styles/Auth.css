@@ -60,11 +60,33 @@ input[type=submit]:hover {
 	color: rgb(2, 255, 15);
 }
 
-.auth-footer span{
+/* .auth-footer span{
 	font-weight: bold;
 	cursor: pointer;
 }
 
-.auth-footer span:hover {
+.auth-footer Link:link {
+	color: white
+}
+
+.auth-footer Link:visited {
+	color: white
+}
+
+.auth-footer Link:hover {
+	color: rgb(255, 145, 145)
+}
+
+.auth-footer Link:active {
+	color: rgb(255, 145, 145)
+} */
+
+a {
+	color: white;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+a:hover {
 	color: rgb(255, 145, 145)
 }
