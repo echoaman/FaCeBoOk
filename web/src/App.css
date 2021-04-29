@@ -12,6 +12,8 @@ header {
 	align-items: center;
 	justify-content: center;
 	background-color: #0059b3;
+	font-size: 25px;
+	font-weight: bold;
 }
 
 .single-container {
