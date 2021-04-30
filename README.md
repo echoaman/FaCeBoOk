@@ -23,11 +23,11 @@
 ## Models
 **User**
 ```
-- UId : string
-- Uname : string
-- Email : string
-- Password : string
-- Friends : List<string>
+UId : string
+Uname : string
+Email : string
+Password : string
+Friends : List<string>
 ```
 ## Profile Service APIs - Port 27017
 
@@ -62,8 +62,9 @@ Status code 404 - null
 **Request**
 ```json
 {
-	"Uname" : string,
-	"Password" : string
+	"UId" : "string",
+    "Uname" : "string",
+    "Password" : "string"
 }
 ```
 
@@ -132,9 +133,9 @@ Status code 404 - null
 **Request**
 ```json
 {
-	"Uname" : string,
-	"Email" : string,
-	"Password" : string
+	"Uname" : "string",
+	"Email" : "string",
+	"Password" : "string"
 }
 ```
 
