@@ -105,7 +105,7 @@ Status code 404 - null
 **Request - Query strings**
 ```
 uid : string
-newFriendId: string
+newFriendId : string
 ```
 
 **Responses**
