@@ -23,11 +23,11 @@
 ## Models
 **User**
 ```
-UId : string
-Uname : string
-Email : string
-Password : string
-Friends : List<string>
+uid : string
+name : string
+email : string
+password : string
+friends : List<string>
 ```
 ## Profile Service APIs - Port 27017
 
@@ -44,11 +44,11 @@ Status code 200 - List<User>
 Status code 404 - null
 ```
 
-### `GET /users/[UId]`
+### `GET /users/[uid]`
 
 **Request**
 ```
-UId : string
+uid : string
 ```
 
 **Responses**
@@ -62,9 +62,9 @@ Status code 404 - null
 **Request**
 ```json
 {
-	"UId" : "string",
-    "Uname" : "string",
-    "Password" : "string"
+    "uid" : "string",
+    "name" : "string",
+    "password" : "string"
 }
 ```
 
@@ -87,11 +87,11 @@ Status code 200 - List<User>
 Status code 404 - null
 ```
 
-### `GET /friends/[UId]`
+### `GET /friends/[uid]`
 
 **Request**
 ```
-UId : string
+uid : string
 ```
 
 **Responses**
@@ -100,12 +100,12 @@ Status code 200 - List<User>
 Status code 404 - null
 ```
 
-### `PUT /addfriend?[UId]&[NewFriendId]`
+### `PUT /addfriend?[uid]&[newFriendId]`
 
 **Request - Query strings**
 ```
-UId : string
-NewFriendId : string
+uid : string
+newFriendId: string
 ```
 
 **Responses**
@@ -133,9 +133,9 @@ Status code 404 - null
 **Request**
 ```json
 {
-	"Uname" : "string",
-	"Email" : "string",
-	"Password" : "string"
+    "name" : "string",
+    "email" : "string",
+    "password" : "string"
 }
 ```
 

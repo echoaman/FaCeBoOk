@@ -4,6 +4,7 @@ services:
   cache:
     container_name: cache
     image: redis:6-alpine
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server"]
     ports: 
       - "6379:6379"
 
