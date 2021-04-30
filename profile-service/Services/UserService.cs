@@ -11,13 +11,13 @@ namespace profile_service.Services
 	{
 		private readonly ILogger<UserService> _logger;
 		private readonly IUserCache _userCache;
-		private readonly IUserDataAccess _userDataAccess;
+		private readonly IUserRepository _userRepo;
 
-		public UserService(ILogger<UserService> logger, IUserCache cache, IUserDataAccess userDataAccess)
+		public UserService(ILogger<UserService> logger, IUserCache cache, IUserRepository userDataAccess)
 		{
 			_logger = logger;
 			_userCache = cache;
-			_userDataAccess = userDataAccess;
+			_userRepo = userDataAccess;
 		}
 
 		public async Task<List<User>> GetAllUsers()
@@ -34,7 +34,7 @@ namespace profile_service.Services
 				}
 
 				// Get from database
-				users = await _userDataAccess.GetAllUsers();
+				users = await _userRepo.GetAllUsers();
 				return users;
 			}
 			catch (Exception ex)
@@ -58,7 +58,7 @@ namespace profile_service.Services
 				}
 
 				// Get from database
-				user = await _userDataAccess.GetUser(UId);
+				user = await _userRepo.GetUser(UId);
 				return user;
 			}
 			catch (Exception ex)
@@ -72,7 +72,7 @@ namespace profile_service.Services
 		{
 			try
 			{
-				return await _userDataAccess.UpdateUser(updateDetails);
+				return await _userRepo.UpdateUser(updateDetails);
 			}
 			catch (Exception ex)
 			{
@@ -83,7 +83,7 @@ namespace profile_service.Services
 
 		public async Task<List<User>> SearchUser(string name)
 		{
-			return await _userDataAccess.SearchUser(name);
+			return await _userRepo.SearchUser(name);
 		}
 
 		public async Task<List<User>> GetFriends(string UId)
@@ -100,7 +100,7 @@ namespace profile_service.Services
 				}
 
 				// Get from databae
-				friends = await _userDataAccess.GetFriends(UId);
+				friends = await _userRepo.GetFriends(UId);
 				return friends;
 			}
 			catch (Exception ex)
@@ -114,7 +114,7 @@ namespace profile_service.Services
 		{
 			try
 			{
-				return await _userDataAccess.AddFriend(UId, NewFriendId);
+				return await _userRepo.AddFriend(UId, NewFriendId);
 			}
 			catch (Exception ex)
 			{
@@ -127,7 +127,7 @@ namespace profile_service.Services
 		{
 			try
 			{
-				return await _userDataAccess.Login(email, password);
+				return await _userRepo.Login(email, password);
 			}
 			catch (Exception ex)
 			{
@@ -140,7 +140,7 @@ namespace profile_service.Services
 		{
 			try
 			{
-				return await _userDataAccess.Signup(newUser);
+				return await _userRepo.Signup(newUser);
 			}
 			catch (Exception ex)
 			{

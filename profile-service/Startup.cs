@@ -43,7 +43,7 @@ namespace profile_service
 			services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
 			services.AddSingleton<IUserService, UserService>();
 			services.AddSingleton<IUserCache, UserCache>();
-			services.AddSingleton<IUserDataAccess, UserDataAccess>();
+			services.AddSingleton<IUserRepository, UserRepository>();
 
 		}
 

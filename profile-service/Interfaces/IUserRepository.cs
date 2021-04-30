@@ -4,7 +4,7 @@ using profile_service.Models;
 
 namespace profile_service.Interfaces
 {
-	public interface IUserDataAccess
+	public interface IUserRepository
 	{
 		public Task<List<User>> GetAllUsers();
 		public Task<User> GetUser(string UId);

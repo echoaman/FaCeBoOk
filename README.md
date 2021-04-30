@@ -18,4 +18,128 @@
 - **Remove all images:** ```docker image rm $(docker images -aq)```
 - **Remove all containers:** ```docker rm $(docker ps -aq)```
 
-**Does not work with CMD**
+**Above does not work with CMD**
+
+## Models
+**User**
+```
+- UId : string
+- Uname : string
+- Email : string
+- Password : string
+- Friends : List<string>
+```
+## Profile Service APIs - Port 27017
+
+### `GET /users`
+
+**Request**
+```
+null
+```
+
+**Response**
+```
+Status code 200 - List<User>
+Status code 404 - null
+```
+
+### `GET /users/[UId]`
+
+**Request**
+```
+UId : string
+```
+
+**Responses**
+```
+Status code 200 - User
+Status code 404 - null
+```
+
+### `PUT /updateUser`
+
+**Request**
+```json
+{
+	"Uname" : string,
+	"Password" : string
+}
+```
+
+**Responses**
+```
+Status code 204
+Status code 400
+```
+
+### `GET /search?[name]`
+
+**Request - Query string**
+```
+name : string
+```
+
+**Responses**
+```
+Status code 200 - List<User>
+Status code 404 - null
+```
+
+### `GET /friends/[UId]`
+
+**Request**
+```
+UId : string
+```
+
+**Responses**
+```
+Status code 200 - List<User>
+Status code 404 - null
+```
+
+### `PUT /addfriend?[UId]&[NewFriendId]`
+
+**Request - Query strings**
+```
+UId : string
+NewFriendId : string
+```
+
+**Responses**
+```
+Status code 204
+Status code 400
+```
+
+### `GET /login?[email]&[password]`
+
+**Request - Query strings**
+```
+email : string
+password : string
+```
+
+**Responses**
+```
+Status code 200 - User
+Status code 404 - null
+```
+
+### `POST /signup`
+
+**Request**
+```json
+{
+	"Uname" : string,
+	"Email" : string,
+	"Password" : string
+}
+```
+
+**Response**
+```
+Status code 201
+Status code 400
+```

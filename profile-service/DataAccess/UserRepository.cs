@@ -10,12 +10,12 @@ using profile_service.Models;
 
 namespace profile_service.DataAccess
 {
-	public class UserDataAccess : IUserDataAccess
+	public class UserRepository : IUserRepository
 	{
 		private readonly IUserCache _userCache;
 		private readonly IMongoCollection<User> _mongo;
-		private readonly ILogger<UserDataAccess> _logger;
-		public UserDataAccess(IDatabaseSettings settings, IUserCache userCache, ILogger<UserDataAccess> logger)
+		private readonly ILogger<UserRepository> _logger;
+		public UserRepository(IDatabaseSettings settings, IUserCache userCache, ILogger<UserRepository> logger)
 		{
 			_userCache = userCache;
 			_logger = logger;
@@ -219,6 +219,7 @@ namespace profile_service.DataAccess
 			{
 				if (!await UserExists(newUser))
 				{
+					newUser.Friends = new List<string>();
 					await _mongo.InsertOneAsync(newUser);
 
 					// Save to cache

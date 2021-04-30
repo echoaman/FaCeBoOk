@@ -40,7 +40,7 @@ namespace profile_service.Controllers
 				return StatusCode(201);
 			}
 			
-			return StatusCode(204);
+			return StatusCode(400);
 		}
 
 		[HttpGet]
@@ -64,7 +64,7 @@ namespace profile_service.Controllers
 			List<User> friends = await _userService.GetFriends(UId);
 			if (friends == null || friends.Count == 0)
 			{
-				return StatusCode(204, friends);
+				return StatusCode(404, null);
 			}
 
 			return StatusCode(200, friends);
@@ -90,7 +90,7 @@ namespace profile_service.Controllers
 			List<User> users = await _userService.GetAllUsers();
 			if (users == null || users.Count == 0)
 			{
-				return StatusCode(204, users);
+				return StatusCode(404, null);
 			}
 
 			return StatusCode(200, users);
@@ -114,9 +114,9 @@ namespace profile_service.Controllers
 		public async Task<ActionResult> SearchUser([FromQuery] string name)
 		{
 			List<User> users = await _userService.SearchUser(name);
-			if(users.Count == 0)
+			if(users == null || users.Count == 0)
 			{
-				return StatusCode(204, users);
+				return StatusCode(404, null);
 			}
 			return StatusCode(200, users);
 		}
