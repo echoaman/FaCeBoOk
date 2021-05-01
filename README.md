@@ -29,7 +29,15 @@ email : string
 password : string
 friends : List<string>
 ```
-## Profile Service APIs - Port 27017
+
+**Post**
+```
+postid : integer
+uid : string
+content : string
+postedOn : string (dd-MM-yyyy HH:mm:ss)
+```
+## Profile Service APIs
 
 ### `GET /users`
 
@@ -38,13 +46,13 @@ friends : List<string>
 null
 ```
 
-**Response**
+**Responses**
 ```
 Status code 200 - List<User>
 Status code 404 - null
 ```
 
-### `GET /users/[uid]`
+### `GET /users/{uid}`
 
 **Request**
 ```
@@ -87,7 +95,7 @@ Status code 200 - List<User>
 Status code 404 - null
 ```
 
-### `GET /friends/[uid]`
+### `GET /friends/{uid}`
 
 **Request**
 ```
@@ -139,8 +147,65 @@ Status code 404 - null
 }
 ```
 
-**Response**
+**Responses**
 ```
 Status code 201
 Status code 400
+```
+
+## Feed Service APIs
+
+### `GET /posts`
+
+**Request**
+```
+null
+```
+
+**Responses**
+```
+Status code 200 - List<Post>
+Status code 404 - null
+```
+
+### `GET /posts/{postid}`
+
+**Request**
+```
+postid : integer
+```
+
+**Responses**
+```
+Status code 200 - Post
+Status code 404 - null
+```
+
+### `GET /posts/user/{uid}`
+
+**Request**
+```
+uid : string
+```
+
+**Responses**
+```
+Status code 200 - List<Post>
+Status code 404 - null
+```
+
+### `POST /posts`
+
+**Request**
+```json
+{
+    "uid" : "string",
+    "content" : "string"
+}
+```
+
+**Responses**
+```
+Status code - 201
+Status code - 400
 ```

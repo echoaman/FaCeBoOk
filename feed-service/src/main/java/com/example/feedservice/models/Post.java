@@ -1,7 +1,8 @@
 package com.example.feedservice.models;
 
-import java.time.LocalDate;
+import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,23 +12,19 @@ import javax.persistence.Table;
 
 import lombok.Data;
 
-
 @Entity
 @Table
 @Data
-public class Post {
-	@Id
-	@SequenceGenerator(
-		name = "post_sequence",
-		sequenceName = "post_sequence",
-		allocationSize = 1
-	)
-	@GeneratedValue(
-		strategy = GenerationType.SEQUENCE,
-		generator = "post_sequence"
-	)
-	private int PostId;
-	private String UId;
-	private LocalDate PostedOn;
-	private String Content;
+public class Post implements Serializable {
+    @Id
+    @SequenceGenerator(name = "post_sequence", sequenceName = "post_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
+    private Integer postid;
+    
+    private String uid;
+
+    @Column(length = 30)
+    private String postedOn;
+    
+    private String content;
 }
