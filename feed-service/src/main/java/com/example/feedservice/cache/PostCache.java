@@ -18,7 +18,6 @@ public class PostCache implements IPostCache {
     private HashOperations hashOperations;
     private RedisTemplate<String, Object> redisTemplate;
 
-    private final String POST_HASH = "post";
     private final String ALL_POSTS_KEY = "all_posts";
 
     public PostCache(RedisTemplate<String, Object> redisTemplate){
@@ -29,7 +28,7 @@ public class PostCache implements IPostCache {
     @Override
     public Post getPostById(int postid) {
         try {
-            Post post = (Post)hashOperations.get(POST_HASH, postid);
+            Post post = (Post)hashOperations.get(postid, "");
             return post;
         } catch (Exception e) {
             log.error(e.toString());
@@ -40,7 +39,7 @@ public class PostCache implements IPostCache {
     @Override
     public List<Post> getAllPosts() {
         try {
-            List<Post> posts = (List<Post>)hashOperations.get(POST_HASH, ALL_POSTS_KEY);
+            List<Post> posts = (List<Post>)hashOperations.get(ALL_POSTS_KEY, "");
             return posts;
         } catch (Exception e) {
             log.error(e.toString());
@@ -51,7 +50,7 @@ public class PostCache implements IPostCache {
     @Override
     public boolean savePost(Post post) {
         try {
-            hashOperations.put(POST_HASH, post.getPostid(), post);
+            hashOperations.put(post.getPostid(), "", post);
             return true;
         } catch (Exception e) {
             log.error(e.toString());
@@ -62,7 +61,7 @@ public class PostCache implements IPostCache {
     @Override
     public boolean saveAllPosts(List<Post> posts) {
         try {
-            hashOperations.put(POST_HASH, ALL_POSTS_KEY, posts);
+            hashOperations.put(ALL_POSTS_KEY, "", posts);
             return true;
         } catch (Exception e) {
            log.error(e.toString());
