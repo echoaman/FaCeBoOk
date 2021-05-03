@@ -168,19 +168,6 @@ Status code 200 - List<Post>
 Status code 404 - null
 ```
 
-### `GET /posts/{postid}`
-
-**Request**
-```
-postid : integer
-```
-
-**Responses**
-```
-Status code 200 - Post
-Status code 404 - null
-```
-
 ### `GET /posts/user/{uid}`
 
 **Request**

@@ -30,94 +30,70 @@ public class PostService implements IPostService {
     public boolean savePost(Post post) {
         try {
             post.setPostedOn(getCurrentDateTime());
-            
+
             // Save to db
             postRepository.save(post);
-            
-            // save to cache
-            boolean postCached = postCache.savePost(post);
+            log.info("savePost - Post inserted to db");
 
-            List<Post> posts = postRepository.findAll();
-            
-            //update cache
-            boolean allPostsCached = postCache.saveAllPosts(posts);
-            return postCached && allPostsCached;
+            // cache post
+            boolean postCached = postCache.savePost(post);
+            log.info("savePost - Cached the post");
+
+            return postCached;
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("savePost - " + e.toString());
             return false;
         }
     }
 
     @Override
-    public List<Post> getAllPosts() {
+    public List<Post> getPostsByUid(String uid) {
         try {
             List<Post> posts = null;
-            posts = postCache.getAllPosts();
-            
-            //check cache
-            if(posts != null && posts.size() > 0) {
+
+            // get from cache
+            log.info("getPostsByUid - Checking posts in cache");
+            posts = postCache.getPostsByUid(uid);
+
+            if (posts != null && !posts.isEmpty()) {
                 return posts;
             }
-            
+
             // get from db
-            posts = postRepository.findAll();
-            
-            // save in cache
-            boolean isCached = postCache.saveAllPosts(posts);
-            if(isCached){
-                return posts;
+            log.info("getPostsByUid - Getting posts from db");
+            posts = postRepository.findPostsByUid(uid);
+
+            // cache posts
+            for (Post post : posts) {
+                if(!postCache.savePost(post)) {
+                    return null;
+                }
             }
 
-            return null;
-            
+            return posts;
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("getPostsByUid - " + e.toString());
             return null;
         }
     }
-
+    
     @Override
-    public Post getPost(int postid) {
+    public List<Post> getAllPosts() {
         try {
-            Post post = null;
-            
-            //get from cache
-            post = postCache.getPostById(postid);
-            if(post != null) {
-                return post;
-            }
-
             //get from db
-            post = postRepository.findById(postid).get();
-
-            //save to cache
-            boolean postCached = postCache.savePost(post);
-            if(postCached) {
-                return post;
-            }
-
-            return null;
+            List<Post> posts = postRepository.findAll();
+            return posts;
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("getAllPosts - "+e.getMessage());
             return null;
         }
     }
-
-    @Override
-    public List<Post> getPostsByUserId(String uid) {
-        try {
-            return postRepository.findPostsByUid(uid);
-        } catch (Exception e) {
-            log.error(e.toString());
-            return null;
-        }
-    }
-
+    
     private String getCurrentDateTime() {
         LocalDateTime myDateObj = LocalDateTime.now();
         System.out.println("Before formatting: " + myDateObj);
         DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
+    
         String formattedDate = myDateObj.format(myFormatObj);
         return formattedDate;
     }

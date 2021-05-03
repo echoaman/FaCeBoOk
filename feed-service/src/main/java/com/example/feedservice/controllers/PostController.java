@@ -24,29 +24,19 @@ public class PostController {
         this.postService = postService;
     }
 
-    @GetMapping(path = "/posts")
+    @GetMapping(path="/posts")
     public ResponseEntity<?> getAllPosts() {
         List<Post> posts = postService.getAllPosts();
         if(posts == null || posts.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(posts, HttpStatus.OK); 
-    }
-
-    @GetMapping(path = "/posts/{postid}")
-    public ResponseEntity<?> getPost(@PathVariable int postid) {
-        Post post = postService.getPost(postid);
-        if(post == null) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-
-        return new ResponseEntity<>(post, HttpStatus.OK);
-    }
+        return new ResponseEntity<>(posts, HttpStatus.OK);
+    } 
 
     @GetMapping(path = "/posts/user/{uid}")
     public ResponseEntity<?> getPostByUserId(@PathVariable String uid) {
-        List<Post> posts = postService.getPostsByUserId(uid);
+        List<Post> posts = postService.getPostsByUid(uid);
         if(posts == null || posts.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }

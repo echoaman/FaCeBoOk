@@ -21,6 +21,7 @@ public class Post implements Serializable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
     private Integer postid;
     
+    @Column(length = 30)
     private String uid;
 
     @Column(length = 30)
