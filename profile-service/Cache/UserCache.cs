@@ -13,7 +13,7 @@ namespace profile_service.Cache
     {
         private readonly IDistributedCache _cache;
         private const string all_users = "all_users";
-        private const string single_user = "user_";
+        private const string single_user = "uid:";
         private readonly ILogger<UserCache> _logger;
         public UserCache(IDistributedCache cache, ILogger<UserCache> logger)
         {
@@ -92,7 +92,7 @@ namespace profile_service.Cache
             }
         }
 
-        public async Task<List<User>> GetFriends(string uid)
+        public async Task<List<string>> GetFriends(string uid)
         {
             try
             {
@@ -102,19 +102,7 @@ namespace profile_service.Cache
                     return null;
                 }
 
-                List<User> friends = new List<User>();
-                foreach (string friendUid in user.friends)
-                {
-                    User friend = await GetUser(friendUid);
-                    if (friend == null)
-                    {
-                        return null;
-                    }
-
-                    friends.Add(friend);
-                }
-
-                return friends.Count == user.friends.Count ? friends : null;
+                return user.friends;
             }
             catch (Exception ex)
             {

@@ -133,12 +133,12 @@ namespace profile_service.DataAccess
             }
         }
 
-        public async Task<List<User>> GetFriends(string uid)
+        public async Task<List<string>> GetFriends(string uid)
         {
             try
             {
                 FindOptions<User> _filter = new FindOptions<User>();
-                _filter.Projection = "{'password' : 0}";
+                _filter.Projection = "{'friends' : 0, 'uid' : 0, 'name' : 0, 'name' : 0}";
                 var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
                 if (user == null)
@@ -146,18 +146,7 @@ namespace profile_service.DataAccess
                     return null;
                 }
 
-                var filterDef = new FilterDefinitionBuilder<User>();
-                var filter = filterDef.In(user => user.uid, user.friends);
-                var friendsQuery = await _userCollection.FindAsync(filter, _filter);
-                List<User> friends = await friendsQuery.ToListAsync();
-
-                // Save to cache
-                foreach (User _user in friends)
-                {
-                    await _userCache.SetUser(_user);
-                }
-
-                return friends;
+                return user.friends;
             }
             catch (Exception ex)
             {

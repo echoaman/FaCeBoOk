@@ -104,7 +104,7 @@ uid : string
 
 **Responses**
 ```
-Status code 200 - List<User>
+Status code 200 - List<string>
 Status code 404 - null
 ```
 

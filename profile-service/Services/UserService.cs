@@ -91,11 +91,11 @@ namespace profile_service.Services
             return await _userRepo.SearchUser(name);
         }
 
-        public async Task<List<User>> GetFriends(string uid)
+        public async Task<List<string>> GetFriends(string uid)
         {
             try
             {
-                List<User> friends = null;
+                List<string> friends = null;
 
                 // Get from cache
                 friends = await _userCache.GetFriends(uid);

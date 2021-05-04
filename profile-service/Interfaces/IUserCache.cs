@@ -11,6 +11,6 @@ namespace profile_service.Interfaces
         public Task<List<User>> GetAllUsers();
         public Task<bool> SetUser(User user);
         public Task<User> GetUser(string uid);
-        public Task<List<User>> GetFriends(string uid);
+        public Task<List<string>> GetFriends(string uid);
     }
 }
