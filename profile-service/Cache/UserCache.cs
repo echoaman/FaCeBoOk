@@ -12,8 +12,6 @@ namespace profile_service.Cache
     public class UserCache : IUserCache
     {
         private readonly IDistributedCache _cache;
-        private const string all_users = "all_users";
-        private const string single_user = "user_";
         private readonly ILogger<UserCache> _logger;
         public UserCache(IDistributedCache cache, ILogger<UserCache> logger)
         {
@@ -21,53 +19,20 @@ namespace profile_service.Cache
             _logger = logger;
         }
 
-        public async Task<bool> SetAllUsers(List<User> users)
-        {
-            try
-            {
-                string json = JsonSerializer.Serialize(users);
-                await _cache.SetStringAsync(all_users, json);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("SetAllUsers in cache: " + ex.Message);
-                throw;
-            }
-        }
-
-        public async Task<List<User>> GetAllUsers()
-        {
-            try
-            {
-                string json = await _cache.GetStringAsync(all_users);
-                if (string.IsNullOrEmpty(json))
-                {
-                    return null;
-                }
-                List<User> users = JsonSerializer.Deserialize<List<User>>(json);
-                return users;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("GetAllUsers in cache: " + ex.Message);
-                return null;
-            }
-        }
 
         public async Task<bool> SetUser(User user)
         {
             try
             {
-                string key = single_user + user.uid;
+                string key = "uid:" + user.uid;
                 string json = JsonSerializer.Serialize(user);
-                await _cache.SetStringAsync(key, json);
+                await _cache.SetStringAsync(key, json, getExpiration(10));
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError("GetAllUsers in cache: " + ex.Message);
-                return false;
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
             }
         }
 
@@ -75,7 +40,7 @@ namespace profile_service.Cache
         {
             try
             {
-                string key = single_user + uid;
+                string key = "uid:" + uid;
                 string json = await _cache.GetStringAsync(key);
                 if (string.IsNullOrEmpty(json))
                 {
@@ -87,40 +52,35 @@ namespace profile_service.Cache
             }
             catch (Exception ex)
             {
-                _logger.LogError("GetUser in cache: " + ex.Message);
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
         }
 
-        public async Task<List<User>> GetFriends(string uid)
+        public async Task<List<string>> GetFriends(string uid)
         {
             try
             {
                 User user = await GetUser(uid);
-                if (user == null || user.friends.Count == 0)
+                if(user == null)
                 {
                     return null;
                 }
 
-                List<User> friends = new List<User>();
-                foreach (string friendUid in user.friends)
-                {
-                    User friend = await GetUser(friendUid);
-                    if (friend == null)
-                    {
-                        return null;
-                    }
-
-                    friends.Add(friend);
-                }
-
-                return friends.Count == user.friends.Count ? friends : null;
+                return user.friends;
             }
             catch (Exception ex)
             {
-                _logger.LogError("GetFriends in cache: " + ex.Message);
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
+        }
+        private DistributedCacheEntryOptions getExpiration(double minutes)
+        {
+            return new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(minutes)
+            };
         }
     }
 }

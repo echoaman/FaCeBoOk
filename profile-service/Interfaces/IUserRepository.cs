@@ -8,11 +8,11 @@ namespace profile_service.Interfaces
     {
         public Task<List<User>> GetAllUsers();
         public Task<User> GetUser(string uid);
-        public Task<Events> UpdateUser(User updatedUser);
+        public Task<User> UpdateUser(User updatedUser);
         public Task<List<User>> SearchUser(string name);
-        public Task<List<User>> GetFriends(string uid);
-        public Task<Events> AddFriend(string uid, string newFriendId);
+        public Task<List<string>> GetFriends(string uid);
+        public Task<User> AddFriend(string uid, string newFriendId);
         public Task<User> Login(string email, string password);
-        public Task<Events> Signup(User newUser);
+        public Task<bool> Signup(User newUser);
     }
 }

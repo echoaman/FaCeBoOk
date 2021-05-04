@@ -15,7 +15,6 @@ namespace profile_service.DataAccess
         private readonly IUserCache _userCache;
         private readonly IMongoCollection<User> _userCollection;
         private readonly ILogger<UserRepository> _logger;
-        private readonly FindOptions<User> _passwordFilter = new FindOptions<User>();
         public UserRepository(IDatabaseSettings settings, IUserCache userCache, ILogger<UserRepository> logger)
         {
             _userCache = userCache;
@@ -24,30 +23,66 @@ namespace profile_service.DataAccess
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
             _userCollection = database.GetCollection<User>(settings.UsersCollectionName);
-
-            _passwordFilter.Projection = "{'password' : 0}";
         }
 
-        //Updates entire cache
+        public async Task<User> AddFriend(string uid, string newFriendId)
+        {
+            try
+            {
+                if(uid == newFriendId || !await UserExists(uid) || !await UserExists(uid))
+                {
+                    return null;
+                }
+
+                var filter = Builders<User>.Filter.Eq(user => user.uid, uid);
+                var update = Builders<User>.Update.Push<String>(user => user.friends, newFriendId);
+                User user = await _userCollection.FindOneAndUpdateAsync(user => user.uid == uid, update);
+                user.friends.Add(newFriendId);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
         public async Task<List<User>> GetAllUsers()
         {
             try
             {
                 List<User> users = null;
-                var query = await _userCollection.FindAsync<User>(user => true, _passwordFilter);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var query = await _userCollection.FindAsync<User>(user => true, _filter);
                 users = await query.ToListAsync();
-
-                // Save in cache
-                bool setSuccesful = await _userCache.SetAllUsers(users);
-                if (setSuccesful)
-                {
-                    return users;
-                }
-                else return null;
+                return users;
             }
             catch (Exception ex)
             {
-                _logger.LogError("GetAllUsers in UserDataAccess: " + ex.Message);
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
+        public async Task<List<string>> GetFriends(string uid)
+        {
+            try
+            {
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'friends' : 0, 'uid' : 0, 'name' : 0, 'name' : 0}";
+                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _filter);
+                User user = await userQuery.FirstOrDefaultAsync();
+                
+                if(user != null) {
+                    return user.friends;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
         }
@@ -56,58 +91,32 @@ namespace profile_service.DataAccess
         {
             try
             {
-                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _passwordFilter);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
-                if (user == null)
-                {
-                    return null;
-                }
-
-                // Save to cache
-                bool setSuccesful = await _userCache.SetUser(user);
-                if (setSuccesful)
-                {
-                    return user;
-                }
-
-                return null;
+                return user;
             }
             catch (Exception ex)
             {
-                _logger.LogError("GetUser in UserDataAccess: " + ex.Message);
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
         }
 
-        public async Task<Events> UpdateUser(User updatedUser)
+        public async Task<User> Login(string email, string password)
         {
             try
             {
-                var filter = Builders<User>.Filter.Eq("uid", updatedUser.uid);
-                var update = Builders<User>.Update
-                    .Set("name", updatedUser.name)
-                    .Set("password", updatedUser.password);
-
-                UpdateResult updateResult = await _userCollection.UpdateOneAsync(filter, update);
-                if (updateResult.ModifiedCount == 0)
-                {
-                    return Events.ERROR;
-                }
-
-                // Save to cache
-                List<User> users = await GetAllUsers();
-                User currUser = users.Find(user => user.uid == updatedUser.uid);
-                bool setSuccesful = await _userCache.SetUser(currUser);
-                if (setSuccesful)
-                {
-                    return Events.UPDATED;
-                }
-
-                return Events.ERROR;
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var userQuery = await _userCollection.FindAsync(user => user.email == email && user.password == password, _filter);
+                User user = await userQuery.FirstOrDefaultAsync();
+                return user;
             }
             catch (Exception ex)
             {
-                _logger.LogError("UpdateUser in UserDataAccess: " + ex.Message);
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
         }
@@ -117,134 +126,65 @@ namespace profile_service.DataAccess
             try
             {
                 BsonRegularExpression regex = new BsonRegularExpression(new Regex(name, RegexOptions.None));
-                var filter = Builders<User>.Filter.Regex("name", regex);
-                var query = await _userCollection.FindAsync<User>(filter, _passwordFilter);
+                var seachfilter = Builders<User>.Filter.Regex("name", regex);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+
+                var query = await _userCollection.FindAsync<User>(seachfilter, _filter);
                 List<User> users = await query.ToListAsync();
                 return users;
             }
             catch (Exception ex)
             {
-                _logger.LogError("SearchUser in UserDataAccess: " + ex.Message);
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
         }
 
-        public async Task<List<User>> GetFriends(string uid)
+        public async Task<bool> Signup(User newUser)
         {
             try
             {
-                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _passwordFilter);
-                User user = await userQuery.FirstOrDefaultAsync();
-                if (user == null)
-                {
-                    return null;
-                }
-
-                var filterDef = new FilterDefinitionBuilder<User>();
-                var filter = filterDef.In(user => user.uid, user.friends);
-                var friendsQuery = await _userCollection.FindAsync(filter, _passwordFilter);
-                List<User> friends = await friendsQuery.ToListAsync();
-
-                // Save to cache
-                foreach (User _user in friends)
-                {
-                    await _userCache.SetUser(_user);
-                }
-
-                return friends;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("GetFriends in UserDataAccess: " + ex.Message);
-                throw;
-            }
-        }
-
-        public async Task<Events> AddFriend(string uid, string newFriendId)
-        {
-            try
-            {
-                if (uid == newFriendId || !await UserExists(uid) || !await UserExists(newFriendId))
-                {
-                    return Events.INVALID;
-                }
-                var filter = Builders<User>.Filter.Eq(user => user.uid, uid);
-                var update = Builders<User>.Update.Push<String>(user => user.friends, newFriendId);
-                User user = await _userCollection.FindOneAndUpdateAsync(user => user.uid == uid, update);
-                user.friends.Add(newFriendId);
-
-                // Save in cache
-                await GetAllUsers();
-                bool setSuccesful = await _userCache.SetUser(user);
-
-                if (setSuccesful)
-                {
-                    return Events.ADDED;
-                }
-                else return Events.ERROR;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("AddFriend in UserDataAccess: " + ex.Message);
-                throw;
-            }
-        }
-
-        public async Task<User> Login(string email, string password)
-        {
-            try
-            {
-                var userQuery = await _userCollection.FindAsync(user => user.email == email && user.password == password, _passwordFilter);
-                User user = await userQuery.FirstOrDefaultAsync();
-                if (user == null)
-                {
-                    return null;
-                }
-
-                // Save to cache
-                bool setSuccesful = await _userCache.SetUser(user);
-                if (setSuccesful)
-                {
-                    return user;
-                }
-
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Login in UserDataAccess: " + ex.Message);
-                throw;
-            }
-        }
-
-        public async Task<Events> Signup(User newUser)
-        {
-            try
-            {
-                if (!await UserExists(newUser))
+                if(! await UserExists(newUser))
                 {
                     newUser.friends = new List<string>();
                     await _userCollection.InsertOneAsync(newUser);
-
-                    // Save to cache
-                    await GetAllUsers();
-                    bool setSuccesful = await _userCache.SetUser(newUser);
-
-                    if (setSuccesful)
-                    {
-                        return Events.CREATED;
-                    }
-
-                    return Events.ERROR;
+                    return true;
                 }
                 else
                 {
-                    return Events.EXISTS;
+                    return false;
                 }
             }
-            catch (System.Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
+        public async Task<User> UpdateUser(User updatedUser)
+        {
+            try
+            {
+                if(await UserExists(updatedUser.uid))
+                {
+                    var filter = Builders<User>.Filter.Eq("uid", updatedUser.uid);
+                    var update = Builders<User>.Update
+                        .Set("name", updatedUser.name)
+                        .Set("password", updatedUser.password);
+
+                    UpdateResult updateResult = await _userCollection.UpdateOneAsync(filter, update);
+                    return await GetUser(updatedUser.uid);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
                 throw;
             }
         }

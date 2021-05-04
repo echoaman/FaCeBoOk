@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace profile_service.Controllers
 {
     [ApiController]
-    public class ProfileController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
 
-        public ProfileController(IUserService userService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }
@@ -61,7 +61,7 @@ namespace profile_service.Controllers
         [Route("/friends/{uid}")]
         public async Task<ActionResult> GetFriends(string uid)
         {
-            List<User> friends = await _userService.GetFriends(uid);
+            List<string> friends = await _userService.GetFriends(uid);
             if (friends == null || friends.Count == 0)
             {
                 return StatusCode(404, null);
