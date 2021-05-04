@@ -2,15 +2,17 @@ package com.example.feedservice.services;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 
-import com.example.feedservice.cache.PostCache;
 import com.example.feedservice.dataaccess.PostRepository;
 import com.example.feedservice.models.Post;
+import com.example.feedservice.interfaces.IPostCache;
 import com.example.feedservice.interfaces.IPostService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,10 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PostService implements IPostService {
     private final PostRepository postRepository;
-    private final PostCache postCache;
+    private final IPostCache postCache;
 
     @Autowired
-    public PostService(PostRepository postRepository, PostCache postCache) {
+    private WebClient.Builder wBuilder;
+
+    @Autowired
+    public PostService(PostRepository postRepository, IPostCache postCache) {
         this.postRepository = postRepository;
         this.postCache = postCache;
     }
@@ -49,6 +54,18 @@ public class PostService implements IPostService {
     @Override
     public List<Post> getPostsByUid(String uid) {
         try {
+            String[] friends = null;
+            String uri = "http://localhost:5000/friends/" + uid;
+            friends = wBuilder
+                        .build()
+                        .get()
+                        .uri(uri)
+                        .retrieve()
+                        .bodyToMono(String[].class).block();
+
+            log.info(Arrays.toString(friends));
+
+
             List<Post> posts = null;
 
             // get from cache

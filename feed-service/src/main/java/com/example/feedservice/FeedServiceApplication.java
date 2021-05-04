@@ -8,6 +8,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
 @EnableCaching
@@ -28,6 +29,11 @@ public class FeedServiceApplication {
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
+
+    @Bean
+    public WebClient.Builder getWebClientBuilder() {
+        return WebClient.builder();
+    } 
 	
     public static void main(String[] args) {
 		SpringApplication.run(FeedServiceApplication.class, args);

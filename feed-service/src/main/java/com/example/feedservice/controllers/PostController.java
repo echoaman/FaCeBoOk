@@ -2,8 +2,8 @@ package com.example.feedservice.controllers;
 
 import java.util.List;
 
+import com.example.feedservice.interfaces.IPostService;
 import com.example.feedservice.models.Post;
-import com.example.feedservice.services.PostService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PostController {
     
-    private final PostService postService;
+    private final IPostService postService;
 
     @Autowired
-    public PostController(PostService postService) {
+    public PostController(IPostService postService) {
         this.postService = postService;
     }
 
