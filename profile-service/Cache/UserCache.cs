@@ -26,7 +26,7 @@ namespace profile_service.Cache
             try
             {
                 string json = JsonSerializer.Serialize(users);
-                await _cache.SetStringAsync(all_users, json);
+                await _cache.SetStringAsync(all_users, json, getExpiration(10));
                 return true;
             }
             catch (Exception ex)
@@ -61,7 +61,7 @@ namespace profile_service.Cache
             {
                 string key = single_user + user.uid;
                 string json = JsonSerializer.Serialize(user);
-                await _cache.SetStringAsync(key, json);
+                await _cache.SetStringAsync(key, json, getExpiration(10));
                 return true;
             }
             catch (Exception ex)
@@ -121,6 +121,14 @@ namespace profile_service.Cache
                 _logger.LogError("GetFriends in cache: " + ex.Message);
                 throw;
             }
+        }
+        
+        private DistributedCacheEntryOptions getExpiration(double minutes)
+        {
+            return new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(minutes)
+            };
         }
     }
 }

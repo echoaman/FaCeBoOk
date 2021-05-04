@@ -15,7 +15,6 @@ namespace profile_service.DataAccess
         private readonly IUserCache _userCache;
         private readonly IMongoCollection<User> _userCollection;
         private readonly ILogger<UserRepository> _logger;
-        private readonly FindOptions<User> _passwordFilter = new FindOptions<User>();
         public UserRepository(IDatabaseSettings settings, IUserCache userCache, ILogger<UserRepository> logger)
         {
             _userCache = userCache;
@@ -24,8 +23,6 @@ namespace profile_service.DataAccess
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
             _userCollection = database.GetCollection<User>(settings.UsersCollectionName);
-
-            _passwordFilter.Projection = "{'password' : 0}";
         }
 
         //Updates entire cache
@@ -34,7 +31,9 @@ namespace profile_service.DataAccess
             try
             {
                 List<User> users = null;
-                var query = await _userCollection.FindAsync<User>(user => true, _passwordFilter);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var query = await _userCollection.FindAsync<User>(user => true, _filter);
                 users = await query.ToListAsync();
 
                 // Save in cache
@@ -56,7 +55,9 @@ namespace profile_service.DataAccess
         {
             try
             {
-                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _passwordFilter);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
                 if (user == null)
                 {
@@ -117,8 +118,11 @@ namespace profile_service.DataAccess
             try
             {
                 BsonRegularExpression regex = new BsonRegularExpression(new Regex(name, RegexOptions.None));
-                var filter = Builders<User>.Filter.Regex("name", regex);
-                var query = await _userCollection.FindAsync<User>(filter, _passwordFilter);
+                var seachfilter = Builders<User>.Filter.Regex("name", regex);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+
+                var query = await _userCollection.FindAsync<User>(seachfilter, _filter);
                 List<User> users = await query.ToListAsync();
                 return users;
             }
@@ -133,7 +137,9 @@ namespace profile_service.DataAccess
         {
             try
             {
-                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _passwordFilter);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
                 if (user == null)
                 {
@@ -142,7 +148,7 @@ namespace profile_service.DataAccess
 
                 var filterDef = new FilterDefinitionBuilder<User>();
                 var filter = filterDef.In(user => user.uid, user.friends);
-                var friendsQuery = await _userCollection.FindAsync(filter, _passwordFilter);
+                var friendsQuery = await _userCollection.FindAsync(filter, _filter);
                 List<User> friends = await friendsQuery.ToListAsync();
 
                 // Save to cache
@@ -194,7 +200,9 @@ namespace profile_service.DataAccess
         {
             try
             {
-                var userQuery = await _userCollection.FindAsync(user => user.email == email && user.password == password, _passwordFilter);
+                FindOptions<User> _filter = new FindOptions<User>();
+                _filter.Projection = "{'password' : 0}";
+                var userQuery = await _userCollection.FindAsync(user => user.email == email && user.password == password, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
                 if (user == null)
                 {
