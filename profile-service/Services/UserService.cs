@@ -20,27 +20,68 @@ namespace profile_service.Services
             _userRepo = userDataAccess;
         }
 
+        public async Task<Events> AddFriend(string uid, string newFriendId)
+        {
+            try
+            {
+                // update db
+                User user = await _userRepo.AddFriend(uid, newFriendId);
+                if(user == null)
+                {
+                    return Events.INVALID;
+                }
+
+                //cache updated user
+                bool cached = await _userCache.SetUser(user);
+                if(cached)
+                {
+                    return Events.ADDED;
+                }
+                return Events.INVALID;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
+
         public async Task<List<User>> GetAllUsers()
         {
             try
             {
-                List<User> users = null;
-
-                // Get from cache
-                users = await _userCache.GetAllUsers();
-                if (users != null)
-                {
-                    return users;
-                }
-
-                // Get from database
-                users = await _userRepo.GetAllUsers();
+                List<User> users = await _userRepo.GetAllUsers();
                 return users;
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error in GetAllUsers: " + ex.Message);
-                return null;
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
+        public async Task<List<string>> GetFriends(string uid)
+        {
+            try
+            {
+                List<string> friends = null;
+
+                //check cache
+                friends = await _userCache.GetFriends(uid);
+                if(friends != null && friends.Count > 0)
+                {
+                    return friends;
+                }
+
+                //get from db
+                User user = await GetUser(uid);
+                return user.friends;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
             }
         }
 
@@ -50,81 +91,29 @@ namespace profile_service.Services
             {
                 User user = null;
 
-                // Get from cache
+                //check cache
                 user = await _userCache.GetUser(uid);
-                if (user != null)
+                if(user != null)
                 {
                     return user;
                 }
 
-                // Get from database
+                //get from db
                 user = await _userRepo.GetUser(uid);
-                return user;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error for user " + uid + ": " + ex.Message);
-                return null;
-            }
-        }
 
-        public async Task<Events> UpdateUser(User updatedUser)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(updatedUser.name) || string.IsNullOrEmpty(updatedUser.password))
+                //cache user
+                bool cached = await _userCache.SetUser(user);
+                if(cached)
                 {
-                    return Events.ERROR;
-                }
-                updatedUser.password = EncodePassword(updatedUser.password);
-                return await _userRepo.UpdateUser(updatedUser);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error during update: " + ex.Message);
-                return Events.UPDATED;
-            }
-        }
-
-        public async Task<List<User>> SearchUser(string name)
-        {
-            return await _userRepo.SearchUser(name);
-        }
-
-        public async Task<List<string>> GetFriends(string uid)
-        {
-            try
-            {
-                List<string> friends = null;
-
-                // Get from cache
-                friends = await _userCache.GetFriends(uid);
-                if (friends != null)
-                {
-                    return friends;
+                    return user;
                 }
 
-                // Get from databae
-                friends = await _userRepo.GetFriends(uid);
-                return friends;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error in GetFriends: " + ex.Message);
                 return null;
             }
-        }
-
-        public async Task<Events> AddFriend(string uid, string newFriendId)
-        {
-            try
-            {
-                return await _userRepo.AddFriend(uid, newFriendId);
-            }
             catch (Exception ex)
             {
-                _logger.LogError("Error in adding friend: " + ex.Message);
-                return Events.ERROR;
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
             }
         }
 
@@ -137,8 +126,21 @@ namespace profile_service.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error in login: " + ex.Message);
-                return null;
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
+        public async Task<List<User>> SearchUser(string name)
+        {
+            try
+            {
+                return await _userRepo.SearchUser(name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
             }
         }
 
@@ -147,15 +149,52 @@ namespace profile_service.Services
             try
             {
                 newUser.password = EncodePassword(newUser.password);
-                return await _userRepo.Signup(newUser);
+                
+                //save to db
+                bool added = await _userRepo.Signup(newUser);
+                if(added)
+                {
+                    return Events.CREATED;
+                }
+
+                return Events.INVALID;
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error in signup: " + ex.Message);
-                return Events.ERROR;
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
             }
         }
 
+        public async Task<Events> UpdateUser(User updatedUser)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(updatedUser.name) || string.IsNullOrEmpty(updatedUser.password))
+                {
+                    return Events.INVALID;
+                }
+
+                updatedUser.password = EncodePassword(updatedUser.password);
+
+                //update in db
+                User user = await _userRepo.UpdateUser(updatedUser);
+
+                //cache user
+                bool cached = await _userCache.SetUser(updatedUser);
+                if(cached)
+                {
+                    return Events.UPDATED;
+                }
+
+                return Events.INVALID;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
         private string EncodePassword(string password)
         {
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
