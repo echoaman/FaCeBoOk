@@ -2,6 +2,7 @@ package com.example.feedservice.services;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,10 +12,12 @@ import com.example.feedservice.interfaces.IPostCache;
 import com.example.feedservice.interfaces.IPostService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -32,6 +35,7 @@ public class PostService implements IPostService {
     }
 
     @Override
+    @Async
     public boolean savePost(Post post) {
         try {
             post.setPostedOn(getCurrentDateTime());
@@ -40,32 +44,26 @@ public class PostService implements IPostService {
             postRepository.save(post);
             log.info("savePost - Post inserted to db");
 
-            // cache post
-            boolean postCached = postCache.savePost(post);
-            log.info("savePost - Cached the post");
+            List<Post> userPosts = postRepository.findPostsByUid(post.getUid());
+            
+            // cache all posts
+            for(Post userPost : userPosts) {
+                if(!postCache.savePost(userPost)) {
+                    return false;
+                }
+            }
 
-            return postCached;
-        } catch (Exception e) {
-            log.error("savePost - " + e.toString());
-            return false;
+            return true;
+        } catch (Exception ex) {
+            log.error("savePost - " + ex.toString());
+            throw ex;
         }
     }
 
     @Override
+    @Async
     public List<Post> getPostsByUid(String uid) {
         try {
-            String[] friends = null;
-            String uri = "http://localhost:5000/friends/" + uid;
-            friends = wBuilder
-                        .build()
-                        .get()
-                        .uri(uri)
-                        .retrieve()
-                        .bodyToMono(String[].class).block();
-
-            log.info(Arrays.toString(friends));
-
-
             List<Post> posts = null;
 
             // get from cache
@@ -88,24 +86,64 @@ public class PostService implements IPostService {
             }
 
             return posts;
-        } catch (Exception e) {
-            log.error("getPostsByUid - " + e.toString());
-            return null;
+        } catch (Exception ex) {
+            log.error("getPostsByUid - " + ex.toString());
+            throw ex;
         }
     }
     
     @Override
+    @Async
     public List<Post> getAllPosts() {
         try {
             //get from db
             List<Post> posts = postRepository.findAll();
             return posts;
-        } catch (Exception e) {
-            log.error("getAllPosts - "+e.getMessage());
-            return null;
+        } catch (Exception ex) {
+            log.error("getAllPosts - "+ ex.getMessage());
+            throw ex;
         }
     }
     
+    @Override
+    @Async
+    public List<Post> getFeedForUid(String uid) {
+        try {
+            final List<String> friends = new ArrayList<>();
+
+            getFriends(uid).subscribe(userFriends -> friends.addAll(Arrays.asList(userFriends)));
+
+            List<Post> feedPosts = getPostsByUid(uid);
+            if(feedPosts == null || feedPosts.size() == 0) {
+                feedPosts = new ArrayList<>();
+            }
+
+            for(String friend : friends) {
+                List<Post> friendPosts = getPostsByUid(friend);
+                if(friendPosts != null && !friendPosts.isEmpty()) {
+                    feedPosts.addAll(friendPosts);
+                }
+            }
+            
+            return feedPosts;
+
+        } catch (Exception ex) {
+            log.error("getFeedForUid - "+ ex.getMessage());
+            throw ex;
+        }
+    }
+
+    private Mono<String[]> getFriends(String uid) {
+        String uri = "http://localhost:5000/friends/" + uid;
+
+        return wBuilder
+            .build()
+            .get()
+            .uri(uri)
+            .retrieve()
+            .bodyToMono(String[].class);
+    }
+
     private String getCurrentDateTime() {
         LocalDateTime myDateObj = LocalDateTime.now();
         System.out.println("Before formatting: " + myDateObj);

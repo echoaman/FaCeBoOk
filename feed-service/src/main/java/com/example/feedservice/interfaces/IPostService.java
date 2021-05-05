@@ -8,4 +8,5 @@ public interface IPostService {
     public List<Post> getPostsByUid(String uid);
     public boolean savePost(Post post);
     public List<Post> getAllPosts();
+    public List<Post> getFeedForUid(String uid);
 }
