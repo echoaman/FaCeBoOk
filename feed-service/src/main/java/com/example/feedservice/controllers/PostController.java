@@ -1,6 +1,7 @@
 package com.example.feedservice.controllers;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 import com.example.feedservice.interfaces.IPostService;
 import com.example.feedservice.models.Post;
@@ -26,9 +27,9 @@ public class PostController {
     }
 
     @GetMapping(path="/posts")
-    @Async
-    public ResponseEntity<?> getAllPosts() {
-        List<Post> posts = postService.getAllPosts();
+    public ResponseEntity<?> getAllPosts() throws Exception {
+        Future<List<Post>> future = postService.getAllPosts();
+        List<Post> posts = future.get();
         if(posts == null || posts.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
@@ -37,9 +38,9 @@ public class PostController {
     } 
 
     @GetMapping(path = "/posts/user/{uid}")
-    @Async
-    public ResponseEntity<?> getPostByUserId(@PathVariable String uid) {
-        List<Post> posts = postService.getPostsByUid(uid);
+    public ResponseEntity<?> getPostByUserId(@PathVariable String uid) throws Exception {
+        Future<List<Post>> future = postService.getPostsByUid(uid);
+        List<Post> posts = future.get();
         if(posts == null || posts.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
@@ -48,9 +49,9 @@ public class PostController {
     }
 
     @PostMapping(path = "/posts")
-    @Async
-    public ResponseEntity<?> savePost(@RequestBody Post post) {
-        boolean isPostSaved = postService.savePost(post);
+    public ResponseEntity<?> savePost(@RequestBody Post post) throws Exception {
+        Future<Boolean> future = postService.savePost(post);
+        boolean isPostSaved = future.get();
         if(isPostSaved) {
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
@@ -60,7 +61,7 @@ public class PostController {
 
     @GetMapping(path = "/feed/{uid}")
     @Async
-    public ResponseEntity<?> getFeedForUserId(@PathVariable String uid) {
+    public ResponseEntity<?> getFeedForUserId(@PathVariable String uid)  throws Exception {
         List<Post> posts = postService.getFeedForUid(uid);
         if(posts == null || posts.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);

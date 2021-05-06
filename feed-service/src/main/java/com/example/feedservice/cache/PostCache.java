@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,18 +34,20 @@ public class PostCache implements IPostCache {
     }
 
     @Override
+    @Async
     public boolean savePost(Post post) {
         try {
             String key = getKey(post.getUid(), post.getPostid().toString());
             hashOperations.put(key, "", post);
             return hashOperations.getOperations().expire(key, Duration.ofMinutes(TEN));
-        } catch (Exception e) {
-            log.error("savePost - " + e.getMessage());
-            return false;
+        } catch (Exception ex) {
+            log.error("savePost - " + ex.getMessage());
+            throw ex;
         }
     }
 
     @Override
+    @Async
     public List<Post> getPostsByUid(String uid) {
         try {
             String pattern = getKey(uid, "*");
@@ -58,9 +61,9 @@ public class PostCache implements IPostCache {
             }
 
             return posts;
-        } catch (Exception e) {
-            log.error("getPostsByUid - " + e.getMessage());
-            return null;
+        } catch (Exception ex) {
+            log.error("getPostsByUid - " + ex.getMessage());
+            throw ex;
         }
     }
 

@@ -2,9 +2,9 @@ package com.example.feedservice.services;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import com.example.feedservice.dataaccess.PostRepository;
 import com.example.feedservice.models.Post;
@@ -12,7 +12,9 @@ import com.example.feedservice.interfaces.IPostCache;
 import com.example.feedservice.interfaces.IPostService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -36,104 +38,87 @@ public class PostService implements IPostService {
 
     @Override
     @Async
-    public boolean savePost(Post post) {
-        try {
-            post.setPostedOn(getCurrentDateTime());
+    public Future<Boolean> savePost(Post post) throws Exception{
+        post.setPostedOn(getCurrentDateTime());
 
-            // Save to db
-            postRepository.save(post);
-            log.info("savePost - Post inserted to db");
+        // Save to db
+        postRepository.savePost(post.getUid(), post.getPostedOn(), post.getContent());
+        log.info("savePost - Post inserted to db");
 
-            List<Post> userPosts = postRepository.findPostsByUid(post.getUid());
-            
-            // cache all posts
-            for(Post userPost : userPosts) {
-                if(!postCache.savePost(userPost)) {
-                    return false;
-                }
-            }
+        // CompletableFuture<List<Post>> future = postRepository.findPostsByUid(post.getUid());
+        // List<Post> userPosts = future.get();
+        
+        // cache all posts
+        // for(Post userPost : userPosts) {
+        //     if(!postCache.savePost(userPost)) {
+        //         return false;
+        //     }
+        // }
 
-            return true;
-        } catch (Exception ex) {
-            log.error("savePost - " + ex.toString());
-            throw ex;
-        }
+        return new AsyncResult<Boolean>(true);
     }
 
     @Override
     @Async
-    public List<Post> getPostsByUid(String uid) {
-        try {
-            List<Post> posts = null;
+    public Future<List<Post>> getPostsByUid(String uid) throws Exception{
+        List<Post> posts = null;
 
-            // get from cache
-            log.info("getPostsByUid - Checking posts in cache");
-            posts = postCache.getPostsByUid(uid);
+        // get from cache
+        // log.info("getPostsByUid - Checking posts in cache");
+        // posts = postCache.getPostsByUid(uid);
 
-            if (posts != null && !posts.isEmpty()) {
-                return posts;
-            }
+        // if (posts != null && !posts.isEmpty()) {
+        //     return posts;
+        // }
 
-            // get from db
-            log.info("getPostsByUid - Getting posts from db");
-            posts = postRepository.findPostsByUid(uid);
+        // get from db
+        log.info("getPostsByUid - Getting posts from db");
+        CompletableFuture<List<Post>> future = postRepository.findPostsByUid(uid);
+        posts = future.get();
+        
+        // cache posts
+        // for (Post post : posts) {
+        //     if(!postCache.savePost(post)) {
+        //         return null;
+        //     }
+        // }
 
-            // cache posts
-            for (Post post : posts) {
-                if(!postCache.savePost(post)) {
-                    return null;
-                }
-            }
-
-            return posts;
-        } catch (Exception ex) {
-            log.error("getPostsByUid - " + ex.toString());
-            throw ex;
-        }
+        return new AsyncResult<List<Post>>(posts);
     }
     
     @Override
     @Async
-    public List<Post> getAllPosts() {
-        try {
+    public Future<List<Post>> getAllPosts() throws Exception {
             //get from db
-            List<Post> posts = postRepository.findAll();
-            return posts;
-        } catch (Exception ex) {
-            log.error("getAllPosts - "+ ex.getMessage());
-            throw ex;
-        }
+        CompletableFuture<List<Post>> future = postRepository.findAllPosts();
+        List<Post> posts = future.get();
+        return new AsyncResult<List<Post>>(posts);
     }
     
     @Override
     @Async
-    public List<Post> getFeedForUid(String uid) {
-        try {
-            final List<String> friends = new ArrayList<>();
+    public List<Post> getFeedForUid(String uid) throws Exception {
+        // final List<String> friends = new ArrayList<>();
 
-            getFriends(uid).subscribe(userFriends -> friends.addAll(Arrays.asList(userFriends)));
+        // getFriends(uid).subscribe(userFriends -> friends.addAll(userFriends));
 
-            List<Post> feedPosts = getPostsByUid(uid);
-            if(feedPosts == null || feedPosts.size() == 0) {
-                feedPosts = new ArrayList<>();
-            }
+        // List<Post> feedPosts = getPostsByUid(uid);
+        // if(feedPosts == null || feedPosts.size() == 0) {
+        //     feedPosts = new ArrayList<>();
+        // }
 
-            for(String friend : friends) {
-                List<Post> friendPosts = getPostsByUid(friend);
-                if(friendPosts != null && !friendPosts.isEmpty()) {
-                    feedPosts.addAll(friendPosts);
-                }
-            }
-            
-            return feedPosts;
-
-        } catch (Exception ex) {
-            log.error("getFeedForUid - "+ ex.getMessage());
-            throw ex;
-        }
+        // for(String friend : friends) {
+        //     List<Post> friendPosts = getPostsByUid(friend);
+        //     if(friendPosts != null && !friendPosts.isEmpty()) {
+        //         feedPosts.addAll(friendPosts);
+        //     }
+        // }
+        
+        // return feedPosts;
+        return null;
     }
 
-    private Mono<String[]> getFriends(String uid) {
+    private Mono<List<String>> getFriends(String uid) {
         String uri = "http://localhost:5000/friends/" + uid;
 
         return wBuilder
@@ -141,7 +126,7 @@ public class PostService implements IPostService {
             .get()
             .uri(uri)
             .retrieve()
-            .bodyToMono(String[].class);
+            .bodyToMono(new ParameterizedTypeReference<List<String>>() {});
     }
 
     private String getCurrentDateTime() {
