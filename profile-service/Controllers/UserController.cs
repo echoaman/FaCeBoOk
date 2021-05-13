@@ -39,7 +39,7 @@ namespace profile_service.Controllers
             {
                 return StatusCode(201);
             }
-            
+
             return StatusCode(400);
         }
 
@@ -71,7 +71,7 @@ namespace profile_service.Controllers
         }
 
         [HttpPut]
-        [Route("/addfriend")]
+        [Route("/friends")]
         public async Task<ActionResult> AddFriend([FromQuery] string uid, [FromQuery] string newFriendId)
         {
             Events userEvents = await _userService.AddFriend(uid, newFriendId);
@@ -97,7 +97,7 @@ namespace profile_service.Controllers
         }
 
         [HttpPut]
-        [Route("/updateUser")]
+        [Route("/users")]
         public async Task<ActionResult> UpdateUser(User updatedUser)
         {
             Events userEvents = await _userService.UpdateUser(updatedUser);
@@ -114,7 +114,7 @@ namespace profile_service.Controllers
         public async Task<ActionResult> SearchUser([FromQuery] string name)
         {
             List<User> users = await _userService.SearchUser(name);
-            if(users == null || users.Count == 0)
+            if (users == null || users.Count == 0)
             {
                 return StatusCode(404, null);
             }
