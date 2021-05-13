@@ -7,4 +7,5 @@ import com.example.feedservice.models.Post;
 public interface IPostCache {
     public boolean savePost(Post post);
     public List<Post> getPostsByUid(String uid);
+    public boolean saveAllPosts(List<Post> posts);
 }

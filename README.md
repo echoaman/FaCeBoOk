@@ -1,12 +1,12 @@
 # Facebook-clone
 
-### Tech Stack:
-![Spring Boot](https://img.shields.io/badge/spring_boot-6DB33F?style=for-the-badge)
-![ASP.NET Core](https://img.shields.io/badge/asp.net_core-5C2D91?style=for-the-badge)
-![Redis](https://img.shields.io/badge/redis-ff0000?style=for-the-badge)
-![PostgreSQL](https://img.shields.io/badge/postgresql-316192?style=for-the-badge)
-![MongoDB](https://img.shields.io/badge/mongodb-4EA94B?style=for-the-badge)
-![Docker](https://img.shields.io/badge/docker-2CA5E0?style=for-the-badge)
+## Tech Stack:
+![Spring Boot](https://img.shields.io/badge/-SPRING%20BOOT-6DB33F?logo=spring&logoColor=white&style=for-the-badge)
+![ASP.NET Core](https://img.shields.io/badge/-ASP.NET%20CORE-512BD4?logo=.net&logoColor=white&style=for-the-badge)
+![Redis](https://img.shields.io/badge/-REDIS-FF0000?logo=redis&logoColor=white&style=for-the-badge)
+![PostgreSQL](https://img.shields.io/badge/-POSTGRESQL-336791?logo=postgresql&logoColor=white&style=for-the-badge)
+![MongoDB](https://img.shields.io/badge/-MONGODB-47A248?logo=mongodb&logoColor=white&style=for-the-badge)
+![Docker](https://img.shields.io/badge/-DOCKER-2496ED?logo=docker&logoColor=white&style=for-the-badge)
 
 
 ### CLI commands
@@ -30,13 +30,6 @@ password : string
 friends : List<string>
 ```
 
-**Post**
-```
-postid : integer
-uid : string
-content : string
-postedOn : string (dd-MM-yyyy HH:mm:ss)
-```
 ## Profile Service APIs
 
 ### `GET /users`
@@ -151,48 +144,4 @@ Status code 404 - null
 ```
 Status code 201
 Status code 400
-```
-
-## Feed Service APIs
-
-### `GET /posts`
-
-**Request**
-```
-null
-```
-
-**Responses**
-```
-Status code 200 - List<Post>
-Status code 404 - null
-```
-
-### `GET /posts/user/{uid}`
-
-**Request**
-```
-uid : string
-```
-
-**Responses**
-```
-Status code 200 - List<Post>
-Status code 404 - null
-```
-
-### `POST /posts`
-
-**Request**
-```json
-{
-    "uid" : "string",
-    "content" : "string"
-}
-```
-
-**Responses**
-```
-Status code - 201
-Status code - 400
 ```
