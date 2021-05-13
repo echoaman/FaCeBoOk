@@ -27,8 +27,6 @@ public class FeedServiceApplication {
         template.setConnectionFactory(redisConnectionFactory());
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
 

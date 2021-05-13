@@ -21,11 +21,12 @@ public class Post implements Serializable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
     private Integer postid;
     
-    @Column(length = 30)
+    @Column(length = 30, name = "uid")
     private String uid;
 
-    @Column(length = 30)
+    @Column(length = 30, name = "postedOn")
     private String postedOn;
     
+    @Column(length = 250, name = "content")
     private String content;
 }
