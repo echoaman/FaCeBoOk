@@ -22,14 +22,14 @@ namespace profile_service.DataAccess
 
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
-            _userCollection = database.GetCollection<User>(settings.UsersCollectionName);
+            _userCollection = database.GetCollection<User>(settings.CollectionName);
         }
 
         public async Task<User> AddFriend(string uid, string newFriendId)
         {
             try
             {
-                if(uid == newFriendId || !await UserExists(uid) || !await UserExists(uid))
+                if (uid == newFriendId || !await UserExists(uid) || !await UserExists(uid))
                 {
                     return null;
                 }
@@ -73,8 +73,9 @@ namespace profile_service.DataAccess
                 _filter.Projection = "{'friends' : 0, 'uid' : 0, 'name' : 0, 'name' : 0}";
                 var userQuery = await _userCollection.FindAsync(user => user.uid == uid, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
-                
-                if(user != null) {
+
+                if (user != null)
+                {
                     return user.friends;
                 }
 
@@ -145,7 +146,7 @@ namespace profile_service.DataAccess
         {
             try
             {
-                if(! await UserExists(newUser))
+                if (!await UserExists(newUser))
                 {
                     newUser.friends = new List<string>();
                     await _userCollection.InsertOneAsync(newUser);
@@ -167,7 +168,7 @@ namespace profile_service.DataAccess
         {
             try
             {
-                if(await UserExists(updatedUser.uid))
+                if (await UserExists(updatedUser.uid))
                 {
                     var filter = Builders<User>.Filter.Eq("uid", updatedUser.uid);
                     var update = Builders<User>.Update

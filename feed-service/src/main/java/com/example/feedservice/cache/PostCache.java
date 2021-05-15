@@ -36,7 +36,7 @@ public class PostCache implements IPostCache {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        
+
         return false;
     }
 
@@ -49,7 +49,7 @@ public class PostCache implements IPostCache {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        
+
         return null;
     }
 
@@ -57,7 +57,7 @@ public class PostCache implements IPostCache {
     public boolean saveAllPosts(List<Post> posts) {
         try {
             for (Post post : posts) {
-                if(!savePost(post)) {
+                if (!savePost(post)) {
                     return false;
                 }
             }
@@ -65,7 +65,7 @@ public class PostCache implements IPostCache {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        
+
         return false;
     }
 }
