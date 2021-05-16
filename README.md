@@ -8,11 +8,6 @@
 ![MongoDB](https://img.shields.io/badge/-MONGODB-47A248?logo=mongodb&logoColor=white&style=for-the-badge)
 ![Docker](https://img.shields.io/badge/-DOCKER-2496ED?logo=docker&logoColor=white&style=for-the-badge)
 
-
-### Run services in dev environment
-- **profile-service:** ```dotnet run```
-- **feed-service:** ```./mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"```
-
 ### CLI commands
 - **Redis:** ```docker exec -it cache redis-cli -a <redis-password>```
 - **Mongodb:** ```docker exec -it profile-database mongo -u <mongo-username> -p <mongo-password> --authenticationDatabase admin```
@@ -21,7 +16,8 @@
 ### Docker Commands
 - **Remove all images:** ```docker image rm $(docker images -aq)```
 - **Remove all containers:** ```docker rm $(docker ps -aq)```
-- **Run all containers:** ```docker compose --env-file .env up```
+- **Run all containers in dev:** ```docker compose --env-file .env.dev up```
+- **Run all containers in prod:** ```docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up```
 
 ## Environment Variables and Configuration Settings
 ### .env

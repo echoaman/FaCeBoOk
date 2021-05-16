@@ -1,12 +1,10 @@
 package com.example.feedservice;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -38,10 +36,7 @@ public class FeedServiceApplication {
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         System.out.println("-----------------------------------------------------------");
-        log.info("redis host " + REDIS_HOST);
-        log.info("redis port " + REDIS_PORT);
-        log.info("redis password " + REDIS_PWD);
-        log.info("redis profiles " + REDIS_PROFILE);
+        log.info("Active Profile: " + REDIS_PROFILE);
         System.out.println("-----------------------------------------------------------");
         RedisStandaloneConfiguration redisConf = new RedisStandaloneConfiguration();
         redisConf.setHostName(REDIS_HOST);

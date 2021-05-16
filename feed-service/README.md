@@ -5,6 +5,9 @@
 ![Redis](https://img.shields.io/badge/-REDIS-FF0000?logo=redis&logoColor=white&style=for-the-badge)
 ![PostgreSQL](https://img.shields.io/badge/-POSTGRESQL-336791?logo=postgresql&logoColor=white&style=for-the-badge)
 
+### Run in local environment
+```./mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"```
+
 ## Models
 
 **Post**

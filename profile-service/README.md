@@ -5,6 +5,9 @@
 ![Redis](https://img.shields.io/badge/-REDIS-DC382D?logo=redis&logoColor=white&style=for-the-badge)
 ![MongoDB](https://img.shields.io/badge/-MONGODB-47A248?logo=mongodb&logoColor=white&style=for-the-badge)
 
+### Run in local environment
+```dotnet run```
+
 ## Models
 
 **User**
