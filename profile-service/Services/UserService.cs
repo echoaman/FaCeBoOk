@@ -7,146 +7,198 @@ using System.Threading.Tasks;
 
 namespace profile_service.Services
 {
-	public class UserService : IUserService
-	{
-		private readonly ILogger<UserService> _logger;
-		private readonly IUserCache _userCache;
-		private readonly IUserDataAccess _userDataAccess;
+    public class UserService : IUserService
+    {
+        private readonly ILogger<UserService> _logger;
+        private readonly IUserCache _userCache;
+        private readonly IUserRepository _userRepo;
 
-		public UserService(ILogger<UserService> logger, IUserCache cache, IUserDataAccess userDataAccess)
-		{
-			_logger = logger;
-			_userCache = cache;
-			_userDataAccess = userDataAccess;
-		}
+        public UserService(ILogger<UserService> logger, IUserCache cache, IUserRepository userDataAccess)
+        {
+            _logger = logger;
+            _userCache = cache;
+            _userRepo = userDataAccess;
+        }
 
-		public async Task<List<User>> GetAllUsers()
-		{
-			try
-			{
-				List<User> users = null;
+        public async Task<Events> AddFriend(string uid, string newFriendId)
+        {
+            try
+            {
+                // update db
+                User user = await _userRepo.AddFriend(uid, newFriendId);
+                if(user == null)
+                {
+                    return Events.INVALID;
+                }
 
-				// Get from cache
-				users = await _userCache.GetAllUsers();
-				if (users != null)
-				{
-					return users;
-				}
+                //cache updated user
+                bool cached = await _userCache.SetUser(user);
+                if(cached)
+                {
+                    return Events.ADDED;
+                }
+                return Events.INVALID;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-				// Get from database
-				users = await _userDataAccess.GetAllUsers();
-				return users;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in GetAllUsers: " + ex.Message);
-				return null;
-			}
-		}
 
-		public async Task<User> GetUser(string UId)
-		{
-			try
-			{
-				User user = null;
+        public async Task<List<User>> GetAllUsers()
+        {
+            try
+            {
+                List<User> users = await _userRepo.GetAllUsers();
+                return users;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-				// Get from cache
-				user = await _userCache.GetUser(UId);
-				if (user != null)
-				{
-					return user;
-				}
+        public async Task<List<string>> GetFriends(string uid)
+        {
+            try
+            {
+                List<string> friends = null;
 
-				// Get from database
-				user = await _userDataAccess.GetUser(UId);
-				return user;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error for user " + UId + ": " + ex.Message);
-				return null;
-			}
-		}
+                //check cache
+                friends = await _userCache.GetFriends(uid);
+                if(friends != null && friends.Count > 0)
+                {
+                    return friends;
+                }
 
-		public async Task<Events> UpdateUser(User updateDetails)
-		{
-			try
-			{
-				return await _userDataAccess.UpdateUser(updateDetails);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error during update: " + ex.Message);
-				return Events.UPDATED;
-			}
-		}
+                //get from db
+                User user = await GetUser(uid);
+                return user.friends;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-		public async Task<List<User>> SearchUser(string name)
-		{
-			return await _userDataAccess.SearchUser(name);
-		}
+        public async Task<User> GetUser(string uid)
+        {
+            try
+            {
+                User user = null;
 
-		public async Task<List<User>> GetFriends(string UId)
-		{
-			try
-			{
-				List<User> friends = null;
+                //check cache
+                user = await _userCache.GetUser(uid);
+                if(user != null)
+                {
+                    return user;
+                }
 
-				// Get from cache
-				friends = await _userCache.GetFriends(UId);
-				if (friends != null)
-				{
-					return friends;
-				}
+                //get from db
+                user = await _userRepo.GetUser(uid);
 
-				// Get from databae
-				friends = await _userDataAccess.GetFriends(UId);
-				return friends;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in GetFriends: " + ex.Message);
-				return null;
-			}
-		}
+                //cache user
+                bool cached = await _userCache.SetUser(user);
+                if(cached)
+                {
+                    return user;
+                }
 
-		public async Task<Events> AddFriend(string UId, string NewFriendId)
-		{
-			try
-			{
-				return await _userDataAccess.AddFriend(UId, NewFriendId);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in adding friend: " + ex.Message);
-				return Events.ERROR;
-			}
-		}
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-		public async Task<User> Login(string email, string password)
-		{
-			try
-			{
-				return await _userDataAccess.Login(email, password);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in login: " + ex.Message);
-				return null;
-			}
-		}
+        public async Task<User> Login(string email, string password)
+        {
+            try
+            {
+                password = EncodePassword(password);
+                return await _userRepo.Login(email, password);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-		public async Task<Events> Signup(User newUser)
-		{
-			try
-			{
-				return await _userDataAccess.Signup(newUser);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Error in signup: " + ex.Message);
-				return Events.ERROR;
-			}
-		}
-	}
+        public async Task<List<User>> SearchUser(string name)
+        {
+            try
+            {
+                return await _userRepo.SearchUser(name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
+        public async Task<Events> Signup(User newUser)
+        {
+            try
+            {
+                newUser.password = EncodePassword(newUser.password);
+                
+                //save to db
+                bool added = await _userRepo.Signup(newUser);
+                if(added)
+                {
+                    return Events.CREATED;
+                }
+
+                return Events.INVALID;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+
+        public async Task<Events> UpdateUser(User updatedUser)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(updatedUser.name) || string.IsNullOrEmpty(updatedUser.password))
+                {
+                    return Events.INVALID;
+                }
+
+                updatedUser.password = EncodePassword(updatedUser.password);
+
+                //update in db
+                User user = await _userRepo.UpdateUser(updatedUser);
+
+                //cache user
+                bool cached = await _userCache.SetUser(updatedUser);
+                if(cached)
+                {
+                    return Events.UPDATED;
+                }
+
+                return Events.INVALID;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+        private string EncodePassword(string password)
+        {
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
+            return System.Convert.ToBase64String(bytes);
+        }
+    }
 }

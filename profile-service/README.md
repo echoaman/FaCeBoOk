@@ -1,26 +1,12 @@
-# Facebook-clone
+# Profile Service
 
-## Tech Stack:
-![Spring Boot](https://img.shields.io/badge/-SPRING%20BOOT-6DB33F?logo=spring&logoColor=white&style=for-the-badge)
+## Tech Stack
 ![ASP.NET Core](https://img.shields.io/badge/-ASP.NET%20CORE-512BD4?logo=.net&logoColor=white&style=for-the-badge)
-![Redis](https://img.shields.io/badge/-REDIS-FF0000?logo=redis&logoColor=white&style=for-the-badge)
-![PostgreSQL](https://img.shields.io/badge/-POSTGRESQL-336791?logo=postgresql&logoColor=white&style=for-the-badge)
+![Redis](https://img.shields.io/badge/-REDIS-DC382D?logo=redis&logoColor=white&style=for-the-badge)
 ![MongoDB](https://img.shields.io/badge/-MONGODB-47A248?logo=mongodb&logoColor=white&style=for-the-badge)
-![Docker](https://img.shields.io/badge/-DOCKER-2496ED?logo=docker&logoColor=white&style=for-the-badge)
-
-
-### CLI commands
-- **Redis:** ```docker exec -it cache redis-cli```
-- **Mongodb:** ```docker exec -it profile-database mongo -u admin -p admin --authenticationDatabase admin```
-- **Postgres:** ```docker exec -it feed-database psql -U admin postgres```
-
-### Remove all images and containers
-- **Remove all images:** ```docker image rm $(docker images -aq)```
-- **Remove all containers:** ```docker rm $(docker ps -aq)```
-
-**Above does not work with CMD**
 
 ## Models
+
 **User**
 ```
 uid : string
@@ -33,6 +19,11 @@ friends : List<string>
 ## Profile Service APIs
 
 ### `GET /users`
+
+**Info**
+```
+Returns a list of all users
+```
 
 **Request**
 ```
@@ -47,6 +38,11 @@ Status code 404 - null
 
 ### `GET /users/{uid}`
 
+**Info**
+```
+Returns a single user
+```
+
 **Request**
 ```
 uid : string
@@ -58,7 +54,12 @@ Status code 200 - User
 Status code 404 - null
 ```
 
-### `PUT /updateUser`
+### `PUT /users`
+
+**Info**
+```
+Updates a user's name and password
+```
 
 **Request**
 ```json
@@ -77,6 +78,11 @@ Status code 400
 
 ### `GET /search?[name]`
 
+**Info**
+```
+Returns a list of users based on name searched
+```
+
 **Request - Query string**
 ```
 name : string
@@ -90,6 +96,11 @@ Status code 404 - null
 
 ### `GET /friends/{uid}`
 
+**Info**
+```
+Returns all friends (IDs) of a user
+```
+
 **Request**
 ```
 uid : string
@@ -101,7 +112,12 @@ Status code 200 - List<string>
 Status code 404 - null
 ```
 
-### `PUT /addfriend?[uid]&[newFriendId]`
+### `PUT /friends?[uid]&[newFriendId]`
+
+**Info**
+```
+Adds a new friend to a user
+```
 
 **Request - Query strings**
 ```
@@ -117,6 +133,11 @@ Status code 400
 
 ### `GET /login?[email]&[password]`
 
+**Info**
+```
+Login a user
+```
+
 **Request - Query strings**
 ```
 email : string
@@ -130,6 +151,11 @@ Status code 404 - null
 ```
 
 ### `POST /signup`
+
+**Info**
+```
+Create new account
+```
 
 **Request**
 ```json

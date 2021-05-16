@@ -9,115 +9,78 @@ using profile_service.Models;
 
 namespace profile_service.Cache
 {
-	public class UserCache : IUserCache
-	{
-		private readonly IDistributedCache _cache;
-		private const string all_users = "all_users";
-		private readonly ILogger<UserCache> _logger;
-		public UserCache(IDistributedCache cache, ILogger<UserCache> logger)
-		{
-			_cache = cache;
-			_logger = logger;
-		}
+    public class UserCache : IUserCache
+    {
+        private readonly IDistributedCache _cache;
+        private readonly ILogger<UserCache> _logger;
+        public UserCache(IDistributedCache cache, ILogger<UserCache> logger)
+        {
+            _cache = cache;
+            _logger = logger;
+        }
 
-		public async Task<bool> SetAllUsers(List<User> users)
-		{
-			try
-			{
-				string json = JsonSerializer.Serialize(users);
-				await _cache.SetStringAsync(all_users, json);
-				return true;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("SetAllUsers in cache: " + ex.Message);
-				throw;
-			}
-		}
 
-		public async Task<List<User>> GetAllUsers()
-		{
-			try
-			{
-				string json = await _cache.GetStringAsync(all_users);
-				if (string.IsNullOrEmpty(json))
-				{
-					return null;
-				}
-				List<User> users = JsonSerializer.Deserialize<List<User>>(json);
-				return users;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("GetAllUsers in cache: " + ex.Message);
-				return null;
-			}
-		}
+        public async Task<bool> SetUser(User user)
+        {
+            try
+            {
+                string key = "uid:" + user.uid;
+                string json = JsonSerializer.Serialize(user);
+                await _cache.SetStringAsync(key, json, getExpiration(10));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-		public async Task<bool> SetUser(User user)
-		{
-			try
-			{
-				string json = JsonSerializer.Serialize(user);
-				await _cache.SetStringAsync(user.UId, json);
-				return true;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("GetAllUsers in cache: " + ex.Message);
-				return false;
-			}
-		}
+        public async Task<User> GetUser(string uid)
+        {
+            try
+            {
+                string key = "uid:" + uid;
+                string json = await _cache.GetStringAsync(key);
+                if (string.IsNullOrEmpty(json))
+                {
+                    return null;
+                }
 
-		public async Task<User> GetUser(string UId)
-		{
-			try
-			{
-				string json = await _cache.GetStringAsync(UId);
-				if (string.IsNullOrEmpty(json))
-				{
-					return null;
-				}
+                User user = JsonSerializer.Deserialize<User>(json);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
 
-				User user = JsonSerializer.Deserialize<User>(json);
-				return user;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("GetUser in cache: " + ex.Message);
-				throw;
-			}
-		}
+        public async Task<List<string>> GetFriends(string uid)
+        {
+            try
+            {
+                User user = await GetUser(uid);
+                if(user == null)
+                {
+                    return null;
+                }
 
-		public async Task<List<User>> GetFriends(string UId)
-		{
-			try
-			{
-				User user = await GetUser(UId);
-				if (user == null || user.Friends.Count == 0)
-				{
-					return null;
-				}
-
-				List<User> friends = new List<User>();
-				foreach (string friendUId in user.Friends)
-				{
-					User friend = await GetUser(friendUId);
-					if (friend == null)
-					{
-						return null;
-					}
-
-					friends.Add(friend);
-				}
-
-				return friends.Count == user.Friends.Count ? friends : null;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("GetFriends in cache: " + ex.Message);
-				throw;
-			}
-		}
-	}
+                return user.friends;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex.Data);
+                throw;
+            }
+        }
+        private DistributedCacheEntryOptions getExpiration(double minutes)
+        {
+            return new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(minutes)
+            };
+        }
+    }
 }
