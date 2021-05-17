@@ -1,8 +1,9 @@
 # Facebook-clone
 
-## Tech Stack:
+## Tech Stack
+![Next.js](https://img.shields.io/badge/-NEXT.JS-000000?logo=next-dot-js&logoColor=white&style=for-the-badge)
+![ASP.NET Core](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=dot-net&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/-SPRING%20BOOT-6DB33F?logo=spring&logoColor=white&style=for-the-badge)
-![ASP.NET Core](https://img.shields.io/badge/-ASP.NET%20CORE-512BD4?logo=.net&logoColor=white&style=for-the-badge)
 ![Redis](https://img.shields.io/badge/-REDIS-DC382D?logo=redis&logoColor=white&style=for-the-badge)
 ![PostgreSQL](https://img.shields.io/badge/-POSTGRESQL-336791?logo=postgresql&logoColor=white&style=for-the-badge)
 ![MongoDB](https://img.shields.io/badge/-MONGODB-47A248?logo=mongodb&logoColor=white&style=for-the-badge)
