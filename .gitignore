@@ -1,3 +1,6 @@
 /feedData
 /profileData
 **/.vscode
+**/*.http
+.env.dev
+.env.prod

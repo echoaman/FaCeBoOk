@@ -4,22 +4,22 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace profile_service.Models
 {
-	public class User
-	{
-		[BsonId]
+    public class User
+    {
+        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-		public string UId { get; set; }
-		
-		[BsonElement("Uname")]
-		public string Uname { get; set; }
+        public string uid { get; set; }
+        
+        [BsonElement("name")]
+        public string name { get; set; }
 
-		[BsonElement("Email")]
-		public string Email { get; set; }
+        [BsonElement("email")]
+        public string email { get; set; }
 
-		[BsonElement("Password")]
-		public string Password { get; set; }
+        [BsonElement("password")]
+        public string password { get; set; }
 
-		[BsonElement("Friends")]
-		public List<string> Friends { get; set; }
-	}
+        [BsonElement("friends")]
+        public List<string> friends { get; set; }
+    }
 }
