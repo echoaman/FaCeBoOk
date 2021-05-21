@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using profile_service.Interfaces;
 using profile_service.Models;
+using profile_service.Entities;
 using System.Threading.Tasks;
 
 namespace profile_service.Services

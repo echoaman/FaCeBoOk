@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using profile_service.Interfaces;
-using profile_service.Models;
+using profile_service.Entities;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using profile_service.Models;
 
 namespace profile_service.Controllers
 {
@@ -83,6 +85,7 @@ namespace profile_service.Controllers
             return StatusCode(400);
         }
 
+        [Authorize]
         [HttpGet]
         [Route("/users")]
         public async Task<ActionResult> GetAllUsers()

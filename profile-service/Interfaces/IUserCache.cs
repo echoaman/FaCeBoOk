@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using profile_service.Models;
+using profile_service.Entities;
 
 namespace profile_service.Interfaces
 {

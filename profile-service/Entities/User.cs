@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace profile_service.Models
+namespace profile_service.Entities
 {
     public class User
     {
