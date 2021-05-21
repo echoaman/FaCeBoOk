@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using profile_service.Interfaces;
 using profile_service.Models;
 using System.Threading.Tasks;
+using profile_service.Entities;
 
 namespace profile_service.Services
 {

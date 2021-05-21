@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using profile_service.Cache;
+using profile_service.Configurations;
 using profile_service.DataAccess;
 using profile_service.Interfaces;
 using profile_service.Models;
@@ -17,13 +18,13 @@ namespace profile_service
     public class Startup
     {
         private readonly ILogger<Startup> _logger;
+        public IConfiguration Configuration { get; }
         public Startup(IConfiguration configuration, ILogger<Startup> logger)
         {
             Configuration = configuration;
             _logger = logger;
         }
 
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -43,11 +44,10 @@ namespace profile_service
             services.AddDistributedMemoryCache();
 
             services.Configure<DatabaseSettings>(Configuration.GetSection(nameof(DatabaseSettings)));
-            services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
+            services.Configure<JwtSettings>(Configuration.GetSection(nameof(JwtSettings)));
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<IUserCache, UserCache>();
             services.AddSingleton<IUserRepository, UserRepository>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -61,13 +61,11 @@ namespace profile_service
             }
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseAuthorization();
-
+            app.UseMiddleware<JwtMiddleware>();
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

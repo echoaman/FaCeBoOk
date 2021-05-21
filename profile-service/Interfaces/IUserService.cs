@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using profile_service.Entities;
 using profile_service.Models;
 
 namespace profile_service.Interfaces

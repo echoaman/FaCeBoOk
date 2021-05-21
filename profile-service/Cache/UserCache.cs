@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using profile_service.Interfaces;
-using profile_service.Models;
+using profile_service.Entities;
 
 namespace profile_service.Cache
 {
