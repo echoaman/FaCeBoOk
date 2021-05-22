@@ -15,12 +15,12 @@ namespace profile_service
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly JwtSettings _appSettings;
+        private readonly string _secret;
 
-        public JwtMiddleware(RequestDelegate next, IOptions<JwtSettings> appSettings)
+        public JwtMiddleware(RequestDelegate next, IJwtSettings jwtSettings)
         {
             _next = next;
-            _appSettings = appSettings.Value;
+            _secret = jwtSettings.Secret;
         }
 
         public async Task Invoke(HttpContext context, IUserService userService)
@@ -40,7 +40,7 @@ namespace profile_service
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+                var key = Encoding.ASCII.GetBytes(_secret);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

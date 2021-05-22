@@ -29,7 +29,7 @@
 ### appsettings.json
 - Has configurations for ```profile-service (ASP.NET Core Webapi)```
 - Create ```appsettings.Development.json```, ```appsettings.Production.json```, etc based on ```appsettings.example.json```
-- Configure **CacheSettings:ConnectionString**, **DatabaseSettings:CollectionName**, **DatabaseSettings:ConnectionString** and **DatabaseSettings:DatabaseName**
+- Configure **CacheSettings:ConnectionString**, **DatabaseSettings:CollectionName**, **DatabaseSettings:ConnectionString**, **DatabaseSettings:DatabaseName** and **JwtSettings:Secret**
 
 ### application.properties
 - Has configurations for ```feed-service (Spring Boot)```

@@ -4,9 +4,11 @@ using profile_service.Interfaces;
 using profile_service.Models;
 using System.Threading.Tasks;
 using profile_service.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace profile_service.Controllers
 {
+    [Authorize]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -17,6 +19,7 @@ namespace profile_service.Controllers
             _userService = userService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("/login")]
         public async Task<ActionResult> Login([FromQuery] string email, [FromQuery] string password)
@@ -31,6 +34,7 @@ namespace profile_service.Controllers
             return StatusCode(200, user);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("/signup")]
         public async Task<ActionResult> Signup(User newUser)

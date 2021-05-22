@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MongoDB.Bson;
+zusing MongoDB.Bson;
 using MongoDB.Driver;
-using profile_service.Configurations;
 using profile_service.Entities;
 using profile_service.Interfaces;
 
@@ -17,14 +15,14 @@ namespace profile_service.DataAccess
         private readonly IUserCache _userCache;
         private readonly IMongoCollection<User> _userCollection;
         private readonly ILogger<UserRepository> _logger;
-        public UserRepository(IOptions<DatabaseSettings> appSettings, IUserCache userCache, ILogger<UserRepository> logger)
+        public UserRepository(IDatabaseSettings databaseSettings, IUserCache userCache, ILogger<UserRepository> logger)
         {
             _userCache = userCache;
             _logger = logger;
 
-            var client = new MongoClient(appSettings.Value.ConnectionString);
-            var database = client.GetDatabase(appSettings.Value.DatabaseName);
-            _userCollection = database.GetCollection<User>(appSettings.Value.CollectionName);
+            var client = new MongoClient(databaseSettings.ConnectionString);
+            var database = client.GetDatabase(databaseSettings.DatabaseName);
+            _userCollection = database.GetCollection<User>(databaseSettings.CollectionName);
         }
 
         public async Task<User> AddFriend(string uid, string newFriendId)
