@@ -13,6 +13,6 @@ namespace profile_service.Interfaces
         public Task<List<string>> GetFriends(string uid);
         public Task<User> AddFriend(string uid, string newFriendId);
         public Task<User> Login(string email, string password);
-        public Task<bool> Signup(User newUser);
+        public Task<User> Signup(string name, string email, string password);
     }
 }

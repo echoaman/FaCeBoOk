@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-zusing MongoDB.Bson;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using profile_service.Entities;
 using profile_service.Interfaces;
@@ -110,7 +110,7 @@ namespace profile_service.DataAccess
             try
             {
                 FindOptions<User> _filter = new FindOptions<User>();
-                _filter.Projection = "{'password' : 0}";
+                _filter.Projection = "{'password' : 0, 'friends' : 0}";
                 var userQuery = await _userCollection.FindAsync(user => user.email == email && user.password == password, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
                 return user;
@@ -118,7 +118,7 @@ namespace profile_service.DataAccess
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex.Data);
-                throw;
+                throw new InvalidOperationException("UserRepository - Error during Login");
             }
         }
 
@@ -142,25 +142,32 @@ namespace profile_service.DataAccess
             }
         }
 
-        public async Task<bool> Signup(User newUser)
+        public async Task<User> Signup(string email, string name, string password)
         {
             try
             {
+                User newUser = new User 
+                {
+                    name = name,
+                    email = email,
+                    password = password
+                };
+
                 if (!await UserExists(newUser))
                 {
                     newUser.friends = new List<string>();
                     await _userCollection.InsertOneAsync(newUser);
-                    return true;
+                    return newUser;
                 }
                 else
                 {
-                    return false;
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex.Data);
-                throw;
+                throw new InvalidOperationException("UserRepository - Error in signup");
             }
         }
 

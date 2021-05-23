@@ -134,17 +134,19 @@ Status code 204
 Status code 400
 ```
 
-### `GET /login?[email]&[password]`
+### `POST /login`
 
 **Info**
 ```
 Login a user
 ```
 
-**Request - Query strings**
-```
-email : string
-password : string
+**Request**
+```json
+{
+    "email" : "string",
+    "password" : "string"
+}
 ```
 
 **Responses**
