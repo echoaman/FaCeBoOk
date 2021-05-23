@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using profile_service.Entities;
 using profile_service.Interfaces;
-using profile_service.Models;
 
 namespace profile_service.DataAccess
 {
@@ -15,14 +15,14 @@ namespace profile_service.DataAccess
         private readonly IUserCache _userCache;
         private readonly IMongoCollection<User> _userCollection;
         private readonly ILogger<UserRepository> _logger;
-        public UserRepository(IDatabaseSettings settings, IUserCache userCache, ILogger<UserRepository> logger)
+        public UserRepository(IDatabaseSettings databaseSettings, IUserCache userCache, ILogger<UserRepository> logger)
         {
             _userCache = userCache;
             _logger = logger;
 
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
-            _userCollection = database.GetCollection<User>(settings.CollectionName);
+            var client = new MongoClient(databaseSettings.ConnectionString);
+            var database = client.GetDatabase(databaseSettings.DatabaseName);
+            _userCollection = database.GetCollection<User>(databaseSettings.CollectionName);
         }
 
         public async Task<User> AddFriend(string uid, string newFriendId)
@@ -110,7 +110,7 @@ namespace profile_service.DataAccess
             try
             {
                 FindOptions<User> _filter = new FindOptions<User>();
-                _filter.Projection = "{'password' : 0}";
+                _filter.Projection = "{'password' : 0, 'friends' : 0}";
                 var userQuery = await _userCollection.FindAsync(user => user.email == email && user.password == password, _filter);
                 User user = await userQuery.FirstOrDefaultAsync();
                 return user;
@@ -118,7 +118,7 @@ namespace profile_service.DataAccess
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex.Data);
-                throw;
+                throw new InvalidOperationException("UserRepository - Error during Login");
             }
         }
 
@@ -142,25 +142,32 @@ namespace profile_service.DataAccess
             }
         }
 
-        public async Task<bool> Signup(User newUser)
+        public async Task<User> Signup(string email, string name, string password)
         {
             try
             {
+                User newUser = new User 
+                {
+                    name = name,
+                    email = email,
+                    password = password
+                };
+
                 if (!await UserExists(newUser))
                 {
                     newUser.friends = new List<string>();
                     await _userCollection.InsertOneAsync(newUser);
-                    return true;
+                    return newUser;
                 }
                 else
                 {
-                    return false;
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex.Data);
-                throw;
+                throw new InvalidOperationException("UserRepository - Error in signup");
             }
         }
 

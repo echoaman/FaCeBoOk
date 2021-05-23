@@ -1,4 +1,6 @@
-namespace profile_service.Models
+using profile_service.Interfaces;
+
+namespace profile_service.Configurations
 {
     public class DatabaseSettings : IDatabaseSettings
     {
@@ -6,11 +8,4 @@ namespace profile_service.Models
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
     }
-
-    public interface IDatabaseSettings
-    {
-        string CollectionName { get; set; }
-        string ConnectionString { get; set; }
-        string DatabaseName { get; set; }
-    }
-}
+} 

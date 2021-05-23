@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using profile_service.Interfaces;
 using profile_service.Models;
 using System.Threading.Tasks;
+using profile_service.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace profile_service.Controllers
 {
+    [Authorize]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -16,31 +19,33 @@ namespace profile_service.Controllers
             _userService = userService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("/login")]
-        public async Task<ActionResult> Login([FromQuery] string email, [FromQuery] string password)
+        public async Task<ActionResult> Login(LoginRequest loginRequest)
         {
-            User user = await _userService.Login(email, password);
+            string token = await _userService.Login(loginRequest.email, loginRequest.password);
 
-            if (user == null)
+            if (string.IsNullOrEmpty(token))
             {
-                return StatusCode(404, user);
+                return StatusCode(404, new { message = "Invalid Email or Password" });
             }
 
-            return StatusCode(200, user);
+            return StatusCode(200, token);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("/signup")]
-        public async Task<ActionResult> Signup(User newUser)
+        public async Task<ActionResult> Signup(SignupRequest signupRequest)
         {
-            Events userEvents = await _userService.Signup(newUser);
-            if (userEvents == Events.CREATED)
+            string token = await _userService.Signup(signupRequest);
+            if (string.IsNullOrEmpty(token))
             {
-                return StatusCode(201);
+                return StatusCode(400, new { message = "User exists" });
             }
 
-            return StatusCode(400);
+            return StatusCode(201, token);
         }
 
         [HttpGet]
@@ -72,9 +77,9 @@ namespace profile_service.Controllers
 
         [HttpPut]
         [Route("/friends")]
-        public async Task<ActionResult> AddFriend([FromQuery] string uid, [FromQuery] string newFriendId)
+        public async Task<ActionResult> AddFriend(AddFriendRequest addFriendRequest)
         {
-            Events userEvents = await _userService.AddFriend(uid, newFriendId);
+            Events userEvents = await _userService.AddFriend(addFriendRequest.uid, addFriendRequest.newFriendId);
             if (userEvents == Events.ADDED)
             {
                 return StatusCode(204);
@@ -83,6 +88,7 @@ namespace profile_service.Controllers
             return StatusCode(400);
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("/users")]
         public async Task<ActionResult> GetAllUsers()
@@ -119,6 +125,6 @@ namespace profile_service.Controllers
                 return StatusCode(404, null);
             }
             return StatusCode(200, users);
-        }
+    }
     }
 }

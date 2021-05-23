@@ -4,6 +4,12 @@ using Microsoft.Extensions.Logging;
 using profile_service.Interfaces;
 using profile_service.Models;
 using System.Threading.Tasks;
+using profile_service.Entities;
+using System.Security.Cryptography;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace profile_service.Services
 {
@@ -13,11 +19,14 @@ namespace profile_service.Services
         private readonly IUserCache _userCache;
         private readonly IUserRepository _userRepo;
 
-        public UserService(ILogger<UserService> logger, IUserCache cache, IUserRepository userDataAccess)
+        private readonly IJwtSettings _jwtSettings;
+
+        public UserService(ILogger<UserService> logger, IUserCache cache, IUserRepository userDataAccess, IJwtSettings jwtSettings)
         {
             _logger = logger;
             _userCache = cache;
             _userRepo = userDataAccess;
+            _jwtSettings = jwtSettings;
         }
 
         public async Task<Events> AddFriend(string uid, string newFriendId)
@@ -26,14 +35,14 @@ namespace profile_service.Services
             {
                 // update db
                 User user = await _userRepo.AddFriend(uid, newFriendId);
-                if(user == null)
+                if (user == null)
                 {
                     return Events.INVALID;
                 }
 
                 //cache updated user
                 bool cached = await _userCache.SetUser(user);
-                if(cached)
+                if (cached)
                 {
                     return Events.ADDED;
                 }
@@ -69,7 +78,7 @@ namespace profile_service.Services
 
                 //check cache
                 friends = await _userCache.GetFriends(uid);
-                if(friends != null && friends.Count > 0)
+                if (friends != null && friends.Count > 0)
                 {
                     return friends;
                 }
@@ -93,7 +102,7 @@ namespace profile_service.Services
 
                 //check cache
                 user = await _userCache.GetUser(uid);
-                if(user != null)
+                if (user != null)
                 {
                     return user;
                 }
@@ -103,7 +112,7 @@ namespace profile_service.Services
 
                 //cache user
                 bool cached = await _userCache.SetUser(user);
-                if(cached)
+                if (cached)
                 {
                     return user;
                 }
@@ -117,17 +126,22 @@ namespace profile_service.Services
             }
         }
 
-        public async Task<User> Login(string email, string password)
+        public async Task<string> Login(string email, string password)
         {
             try
             {
-                password = EncodePassword(password);
-                return await _userRepo.Login(email, password);
+                string encodedPassword = hashPassword(password);
+                User user = await _userRepo.Login(email, encodedPassword);
+                if(user == null) {
+                    return null;
+                }
+
+                return GetJwtToken(user);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex.Data);
-                throw;
+                throw new InvalidOperationException("UserService - Error in login");
             }
         }
 
@@ -144,20 +158,20 @@ namespace profile_service.Services
             }
         }
 
-        public async Task<Events> Signup(User newUser)
+        public async Task<string> Signup(SignupRequest signupRequest)
         {
             try
             {
-                newUser.password = EncodePassword(newUser.password);
-                
+                string hashedPassword = hashPassword(signupRequest.password);
+
                 //save to db
-                bool added = await _userRepo.Signup(newUser);
-                if(added)
-                {
-                    return Events.CREATED;
+                User user = await _userRepo.Signup(signupRequest.name, signupRequest.email, hashedPassword);
+                if(user == null) {
+                    return null;
                 }
 
-                return Events.INVALID;
+                return GetJwtToken(user);
+                
             }
             catch (Exception ex)
             {
@@ -175,14 +189,14 @@ namespace profile_service.Services
                     return Events.INVALID;
                 }
 
-                updatedUser.password = EncodePassword(updatedUser.password);
+                updatedUser.password = hashPassword(updatedUser.password);
 
                 //update in db
                 User user = await _userRepo.UpdateUser(updatedUser);
 
                 //cache user
                 bool cached = await _userCache.SetUser(updatedUser);
-                if(cached)
+                if (cached)
                 {
                     return Events.UPDATED;
                 }
@@ -195,10 +209,41 @@ namespace profile_service.Services
                 throw;
             }
         }
-        private string EncodePassword(string password)
+        private string hashPassword(string password)
         {
-            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
-            return System.Convert.ToBase64String(bytes);
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
+
+        private string GetJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenKey = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor() {
+                Subject = new ClaimsIdentity(new Claim[] {
+                    new Claim(ClaimTypes.Name, user.name),
+                    new Claim(ClaimTypes.NameIdentifier, user.uid)
+                }),
+                
+                Expires = DateTime.UtcNow.AddHours(1),
+
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(tokenKey),
+                    SecurityAlgorithms.HmacSha256Signature
+                )
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }
